@@ -1,0 +1,434 @@
+<!DOCTYPE html><!--KKE32b9WFCkqyQ0X62vxy--><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/ad875cc29e795ab7.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-4741459095cd400e.js"/><script src="/_next/static/chunks/4bd1b696-c023c6e3521b1417.js" async=""></script><script src="/_next/static/chunks/255-aaafc19c72668c72.js" async=""></script><script src="/_next/static/chunks/main-app-14368e47824f3575.js" async=""></script><script src="/_next/static/chunks/619-ba102abea3e3d0e4.js" async=""></script><script src="/_next/static/chunks/app/layout-b5983c2a6e5f3636.js" async=""></script><script src="/_next/static/chunks/app/(learn)/layout-428c68e7c724cf16.js" async=""></script><script src="/_next/static/chunks/620-2711a7e455946243.js" async=""></script><script src="/_next/static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js" async=""></script><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>深入 Claude Code 源码</title><meta name="description" content="从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。"/><meta name="keywords" content="Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript"/><script>
+              (function() {
+                try {
+                  var mode = localStorage.getItem('theme');
+                  if (mode === 'dark' || (!mode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            </script><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased"><div hidden=""><!--$--><!--/$--></div><header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-md"><div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"><a class="flex items-center gap-2 font-bold text-lg text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal h-5 w-5 text-[var(--color-accent)]" aria-hidden="true"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg><span>Claude Code 源码解析</span></a><nav class="hidden md:flex items-center gap-1"><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/">首页</a><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01">开始学习</a><div class="mx-2 h-5 w-px bg-[var(--color-border)]"></div><button class="p-2 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" aria-label="切换主题"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></nav><button class="md:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]" aria-label="菜单"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5" aria-hidden="true"><path d="M4 12h16"></path><path d="M4 18h16"></path><path d="M4 6h16"></path></svg></button></div></header><main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex flex-row min-h-[calc(100vh-2rem)] gap-6 py-6"><aside class="hidden md:block w-56 shrink-0"><div class="sticky top-6"><aside class="hidden md:block w-56 shrink-0"><nav class="sticky top-[calc(3.5rem+1px)] max-h-[calc(100vh-3.5rem-1px)] overflow-y-auto py-6 pr-4 space-y-6"><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">启动与基础</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">01</span><span class="truncate">启动引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c02"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">02</span><span class="truncate">配置系统</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">核心引擎</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c03"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">03</span><span class="truncate">查询引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c04"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">04</span><span class="truncate">查询循环</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c05"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">05</span><span class="truncate">API 客户端</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-amber-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">工具系统</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c06"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">06</span><span class="truncate">工具架构</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c07"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">07</span><span class="truncate">工具执行引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c08"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">08</span><span class="truncate">内置工具全景</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c09"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">09</span><span class="truncate">计划与工作流</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">安全与权限</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c10"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">10</span><span class="truncate">权限系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c11"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">11</span><span class="truncate">Hook 生命周期</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">扩展与集成</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c12"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">12</span><span class="truncate">MCP 集成</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c13"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">13</span><span class="truncate">内存与上下文</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c14"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">14</span><span class="truncate">子代理系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c15"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">15</span><span class="truncate">Teams 多代理协作</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c16"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">16</span><span class="truncate">任务与调度</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c17"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">17</span><span class="truncate">Skills 与 Plugins</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-slate-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">界面与状态</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors font-medium text-[var(--color-text)] bg-slate-500/10 dark:bg-slate-500/15" href="/c18"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">18</span><span class="truncate">状态管理</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c19"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">19</span><span class="truncate">终端 UI 框架</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c20"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">20</span><span class="truncate">Bridge 与远程集成</span></a></li></ul></div></nav></aside></div></aside><div class="flex-1 min-w-0"><div class="pb-20"><header class="mb-6"><a class="group mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>返回目录</a><div class="flex items-center gap-3 mb-3"><span class="layer-ui-state layer-badge">界面与状态</span><span class="text-sm font-mono font-semibold text-[var(--color-text-muted)]">第 <!-- -->18<!-- --> 章</span></div><h1 class="text-3xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-4xl">状态管理</h1><p class="mt-2 text-lg text-[var(--color-text-secondary)]">DeepImmutable 状态树</p><div class="relative mt-6 rounded-xl border border-[var(--color-border)] overflow-hidden"><div class="absolute inset-0 opacity-[0.08]" style="background:linear-gradient(135deg, var(--layer-ui-state), var(--color-accent))"></div><div class="relative px-5 py-4"><div class="flex items-start gap-3"><div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style="background-color:var(--layer-ui-state-light)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true" style="color:var(--layer-ui-state)"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-1">核心洞察</div><p class="text-[15px] font-medium leading-relaxed text-[var(--color-text)]">DeepImmutable 类型约束 + 函数式更新，在无框架依赖下实现可预测状态管理</p></div></div></div></div></header><div class="sticky-tabs-bar"><div class="sticky-tabs-inner"><button class="sticky-tab-item sticky-tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>学习</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>架构</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>源码</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>互动</button></div></div><section id="section-learn" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-blue-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4 text-blue-500" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><h2 class="section-header-title">学习</h2><p class="section-header-subtitle">概念讲解与核心设计分析</p></div></div><div class="prose-custom">
+    <h2>18.1 AppState 全局状态类型</h2>
+    <p>Claude Code 的状态管理核心是 <strong>state/</strong> 目录中定义的 <strong>AppState</strong> 类型。这是一个包含 <strong>300+ 个字段</strong>的巨型状态对象，按功能域组织为多个区块：</p>
+    <ul>
+      <li><strong>Core</strong> — 核心状态：conversationId, messages, model, currentTool, isLoading, error 等基础运行状态</li>
+      <li><strong>Permissions</strong> — 权限状态：grantedPermissions, deniedPermissions, permissionMode, autoApprovePatterns</li>
+      <li><strong>MCP</strong> — MCP 连接状态：mcpClients, mcpTools, mcpResources, mcpConnectionStatus</li>
+      <li><strong>Plugins</strong> — 插件状态：installedPlugins, pluginConfigs, pluginErrors</li>
+      <li><strong>Tasks</strong> — 任务状态：taskList, activeTask, taskDependencies</li>
+      <li><strong>Agents</strong> — 代理状态：activeAgents, coordinatorState, swarmBackend</li>
+      <li><strong>Speculation</strong> — 推测执行状态：speculationState, specBoundary, writtenPaths</li>
+      <li><strong>Remote</strong> — 远程连接状态：remoteSession, bridgeStatus, jwtToken</li>
+      <li><strong>Kairos</strong> — Kairos 集成状态：kairosEnabled, kairosSession</li>
+      <li><strong>Computer Use</strong> — 计算机操控状态：screenState, appDetection, inputMode</li>
+    </ul>
+
+    <h2>18.2 DeepImmutable 不可变包装</h2>
+    <p>AppState 通过 <strong>DeepImmutable&lt;T&gt;</strong> 类型包装器在类型层面强制不可变性。这是一个递归的 TypeScript 工具类型，将所有属性、嵌套对象和数组都标记为 readonly：</p>
+    <ul>
+      <li>防止直接修改状态字段（编译时报错）</li>
+      <li>强制所有状态更新通过 setAppState 函数进行</li>
+      <li>数组变为 ReadonlyArray，Map 变为 ReadonlyMap</li>
+    </ul>
+
+    <h2>18.3 Store 模式</h2>
+    <p><strong>createStore&lt;T&gt;</strong> 提供了一个极简的 Store 实现，是整个状态管理系统的基础原语：</p>
+    <ul>
+      <li><strong>get()</strong> — 获取当前状态快照</li>
+      <li><strong>set(updater)</strong> — 通过更新函数设置新状态。接受 <code>(prev: T) =&gt; T</code> 或直接值</li>
+      <li><strong>subscribe(listener)</strong> — 订阅状态变更，返回取消订阅函数</li>
+    </ul>
+    <p><strong>AppStateStore.ts</strong> 基于 createStore 创建了全局唯一的应用状态存储实例。</p>
+
+    <h2>18.4 状态变更副作用</h2>
+    <p><strong>onChangeAppState.ts</strong> 注册了一组状态变更监听器，当特定字段变化时触发副作用：</p>
+    <ul>
+      <li>当 model 变更时，重新计算 token 限制和工具可用性</li>
+      <li>当 permissions 变更时，更新工具的权限检查缓存</li>
+      <li>当 mcpClients 变更时，重新注册 MCP 工具</li>
+      <li>当 speculationState 变更时，触发推测执行的启动或中止</li>
+    </ul>
+
+    <h2>18.5 SpeculationState 推测执行状态</h2>
+    <p>推测执行使用专门的状态结构追踪其生命周期：</p>
+    <ul>
+      <li><strong>idle</strong> — 空闲状态，等待触发条件</li>
+      <li><strong>active</strong> — 活跃状态，包含 abort() 中止函数、startTime 启动时间、messagesRef 消息引用、writtenPathsRef 已写入路径集合、boundary 推测边界</li>
+    </ul>
+
+    <h2>18.6 bootstrap/state.ts 与 selectors</h2>
+    <p><strong>bootstrap/state.ts</strong> 提供全局单例状态，不依赖 React 上下文。这使得非 UI 代码（如工具执行、MCP 处理）也能访问应用状态。</p>
+    <p><strong>selectors.ts</strong> 提供派生状态计算，将原始状态转换为业务视图。<strong>teammateViewHelpers.ts</strong> 则为队友显示提供专门的视图状态转换。</p>
+  </div></section><section id="section-architecture" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-emerald-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4 text-emerald-500" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></div><div><h2 class="section-header-title">架构</h2><p class="section-header-subtitle">模块关系与设计决策</p></div></div><div class="prose-custom">
+    <div class="arch-diagram">
+      <h3>状态管理架构图</h3>
+      <div class="arch-flow">
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #e94560;">AppState — 300+ 字段的全局状态</h4>
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;">
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #e94560; font-size: 11px;">
+              <div style="font-weight: bold;">Core</div>
+              <div style="color: #aaa;">会话/模型</div>
+            </div>
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #e94560; font-size: 11px;">
+              <div style="font-weight: bold;">Permissions</div>
+              <div style="color: #aaa;">权限控制</div>
+            </div>
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #e94560; font-size: 11px;">
+              <div style="font-weight: bold;">MCP</div>
+              <div style="color: #aaa;">连接/工具</div>
+            </div>
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #e94560; font-size: 11px;">
+              <div style="font-weight: bold;">Tasks</div>
+              <div style="color: #aaa;">任务列表</div>
+            </div>
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #e94560; font-size: 11px;">
+              <div style="font-weight: bold;">Agents</div>
+              <div style="color: #aaa;">代理状态</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 6px;">
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #533483; font-size: 11px;">
+              <div style="font-weight: bold;">Speculation</div>
+              <div style="color: #aaa;">推测执行</div>
+            </div>
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #533483; font-size: 11px;">
+              <div style="font-weight: bold;">Remote</div>
+              <div style="color: #aaa;">远程连接</div>
+            </div>
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #533483; font-size: 11px;">
+              <div style="font-weight: bold;">Plugins</div>
+              <div style="color: #aaa;">插件配置</div>
+            </div>
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #533483; font-size: 11px;">
+              <div style="font-weight: bold;">Kairos</div>
+              <div style="color: #aaa;">集成状态</div>
+            </div>
+            <div style="background: #16213e; padding: 8px; border-radius: 6px; text-align: center; border: 1px solid #533483; font-size: 11px;">
+              <div style="font-weight: bold;">ComputerUse</div>
+              <div style="color: #aaa;">屏幕操控</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #e94560;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #0f3460;">Store 模式</h4>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+            <div style="background: #16213e; padding: 14px; border-radius: 8px; border: 1px solid #0f3460; text-align: center;">
+              <div style="font-weight: bold;">createStore&lt;T&gt;</div>
+              <div style="font-size: 11px; color: #aaa;">get / set / subscribe</div>
+            </div>
+            <div style="background: #16213e; padding: 14px; border-radius: 8px; border: 2px solid #0f3460; text-align: center;">
+              <div style="font-weight: bold;">AppStateStore</div>
+              <div style="font-size: 11px; color: #aaa;">全局单例</div>
+            </div>
+            <div style="background: #16213e; padding: 14px; border-radius: 8px; border: 1px solid #0f3460; text-align: center;">
+              <div style="font-weight: bold;">DeepImmutable</div>
+              <div style="font-size: 11px; color: #aaa;">类型级不可变</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #0f3460;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #48c9b0;">副作用 &amp; 派生</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #48c9b0;">
+              <div style="font-weight: bold; font-size: 13px;">onChangeAppState</div>
+              <div style="font-size: 11px; color: #aaa;">model &#x2192; token 重算</div>
+              <div style="font-size: 11px; color: #aaa;">permissions &#x2192; 缓存更新</div>
+              <div style="font-size: 11px; color: #aaa;">mcp &#x2192; 工具重注册</div>
+            </div>
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #48c9b0;">
+              <div style="font-weight: bold; font-size: 13px;">selectors.ts</div>
+              <div style="font-size: 11px; color: #aaa;">派生状态计算</div>
+              <div style="font-size: 11px; color: #aaa;">teammateViewHelpers</div>
+              <div style="font-size: 11px; color: #aaa;">bootstrap/state.ts</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #48c9b0;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px;">
+          <h4 style="color: #f0c040;">SpeculationState</h4>
+          <div style="display: flex; justify-content: center; gap: 12px; align-items: center;">
+            <div style="background: #3a3000; padding: 10px 20px; border-radius: 20px; border: 1px solid #f0c040;">idle</div>
+            <div style="color: #f0c040; font-size: 20px;">&#x21C4;</div>
+            <div style="background: #3a3000; padding: 10px 20px; border-radius: 20px; border: 2px solid #f0c040;">
+              <div>active</div>
+              <div style="font-size: 10px; color: #ddd;">abort | startTime | boundary</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></section><section id="section-source" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-amber-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-amber-500" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg></div><div><h2 class="section-header-title">源码</h2><p class="section-header-subtitle">共 <!-- -->3<!-- --> 个关键代码示例</p></div></div><div class="space-y-8"><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">01</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">createStore 与 AppState 定义</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// DeepImmutable: 递归不可变类型包装</span>
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">DeepImmutable</span>&lt;T&gt; =
+  T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Map</span>&lt;infer K, infer V&gt;
+    ? <span class="hljs-title class_">ReadonlyMap</span>&lt;<span class="hljs-title class_">DeepImmutable</span>&lt;K&gt;, <span class="hljs-title class_">DeepImmutable</span>&lt;V&gt;&gt;
+  : T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Set</span>&lt;infer S&gt;
+    ? <span class="hljs-title class_">ReadonlySet</span>&lt;<span class="hljs-title class_">DeepImmutable</span>&lt;S&gt;&gt;
+  : T <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Array</span>&lt;infer E&gt;
+    ? <span class="hljs-title class_">ReadonlyArray</span>&lt;<span class="hljs-title class_">DeepImmutable</span>&lt;E&gt;&gt;
+  : T <span class="hljs-keyword">extends</span> <span class="hljs-built_in">object</span>
+    ? { <span class="hljs-keyword">readonly</span> [K <span class="hljs-keyword">in</span> keyof T]: <span class="hljs-title class_">DeepImmutable</span>&lt;T[K]&gt; }
+  : T;
+
+<span class="hljs-comment">// createStore: 极简 Store 原语</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">Store</span>&lt;T&gt; {
+  <span class="hljs-title function_">get</span>(): <span class="hljs-title class_">DeepImmutable</span>&lt;T&gt;;
+  <span class="hljs-title function_">set</span>(<span class="hljs-attr">updater</span>: T | (<span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">prev</span>: T</span>) =&gt;</span> T)): <span class="hljs-built_in">void</span>;
+  <span class="hljs-title function_">subscribe</span>(<span class="hljs-attr">listener</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">state</span>: <span class="hljs-title class_">DeepImmutable</span>&lt;T&gt;</span>) =&gt;</span> <span class="hljs-built_in">void</span>): <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>;
+}
+
+<span class="hljs-keyword">function</span> createStore&lt;T&gt;(<span class="hljs-attr">initialState</span>: T): <span class="hljs-title class_">Store</span>&lt;T&gt; {
+  <span class="hljs-keyword">let</span> state = initialState;
+  <span class="hljs-keyword">const</span> listeners = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>&lt;
+    <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">state</span>: <span class="hljs-title class_">DeepImmutable</span>&lt;T&gt;</span>) =&gt;</span> <span class="hljs-built_in">void</span>
+  &gt;();
+
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-title function_">get</span>(<span class="hljs-params"></span>) {
+      <span class="hljs-keyword">return</span> state <span class="hljs-keyword">as</span> <span class="hljs-title class_">DeepImmutable</span>&lt;T&gt;;
+    },
+    <span class="hljs-title function_">set</span>(<span class="hljs-params">updater</span>) {
+      <span class="hljs-keyword">const</span> next = <span class="hljs-keyword">typeof</span> updater === <span class="hljs-string">&quot;function&quot;</span>
+        ? (updater <span class="hljs-title function_">as</span> (<span class="hljs-attr">prev</span>: T) =&gt; T)(state)
+        : updater;
+      <span class="hljs-keyword">if</span> (next !== state) {
+        state = next;
+        <span class="hljs-keyword">const</span> immutable = state <span class="hljs-keyword">as</span> <span class="hljs-title class_">DeepImmutable</span>&lt;T&gt;;
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> listener <span class="hljs-keyword">of</span> listeners) {
+          <span class="hljs-title function_">listener</span>(immutable);
+        }
+      }
+    },
+    <span class="hljs-title function_">subscribe</span>(<span class="hljs-params">listener</span>) {
+      listeners.<span class="hljs-title function_">add</span>(listener);
+      <span class="hljs-keyword">return</span> <span class="hljs-function">() =&gt;</span> listeners.<span class="hljs-title function_">delete</span>(listener);
+    }
+  };
+}
+
+<span class="hljs-comment">// AppStateStore.ts: 全局状态存储</span>
+<span class="hljs-keyword">const</span> appStateStore = createStore&lt;<span class="hljs-title class_">AppState</span>&gt;(
+  initialAppState
+);
+
+<span class="hljs-comment">// 导出便捷函数</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">getAppState</span>(<span class="hljs-params"></span>): <span class="hljs-title class_">DeepImmutable</span>&lt;<span class="hljs-title class_">AppState</span>&gt; {
+  <span class="hljs-keyword">return</span> appStateStore.<span class="hljs-title function_">get</span>();
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">setAppState</span>(<span class="hljs-params">
+  <span class="hljs-attr">updater</span>: (prev: AppState) =&gt; <span class="hljs-title class_">AppState</span>
+</span>): <span class="hljs-built_in">void</span> {
+  appStateStore.<span class="hljs-title function_">set</span>(updater);
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">02</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">AppState 类型定义（精简版）</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// AppState: 300+ 字段的全局状态类型（精简展示）</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">AppState</span> {
+  <span class="hljs-comment">// === Core 核心 ===</span>
+  <span class="hljs-attr">conversationId</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">messages</span>: <span class="hljs-title class_">Message</span>[];
+  <span class="hljs-attr">model</span>: <span class="hljs-title class_">ModelName</span>;
+  <span class="hljs-attr">currentTool</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">isLoading</span>: <span class="hljs-built_in">boolean</span>;
+  <span class="hljs-attr">error</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">apiKey</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">tokenUsage</span>: <span class="hljs-title class_">TokenUsage</span>;
+
+  <span class="hljs-comment">// === Permissions 权限 ===</span>
+  <span class="hljs-attr">grantedPermissions</span>: <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">Permission</span>&gt;;
+  <span class="hljs-attr">deniedPermissions</span>: <span class="hljs-title class_">Set</span>&lt;<span class="hljs-built_in">string</span>&gt;;
+  <span class="hljs-attr">permissionMode</span>: <span class="hljs-string">&quot;default&quot;</span> | <span class="hljs-string">&quot;auto&quot;</span> | <span class="hljs-string">&quot;manual&quot;</span>;
+  <span class="hljs-attr">autoApprovePatterns</span>: <span class="hljs-built_in">string</span>[];
+
+  <span class="hljs-comment">// === MCP ===</span>
+  <span class="hljs-attr">mcpClients</span>: <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">McpClient</span>&gt;;
+  <span class="hljs-attr">mcpTools</span>: <span class="hljs-title class_">ToolDefinition</span>[];
+  <span class="hljs-attr">mcpResources</span>: <span class="hljs-title class_">Resource</span>[];
+  <span class="hljs-attr">mcpConnectionStatus</span>: <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">ConnectionStatus</span>&gt;;
+
+  <span class="hljs-comment">// === Tasks 任务 ===</span>
+  <span class="hljs-attr">taskList</span>: <span class="hljs-title class_">Task</span>[];
+  <span class="hljs-attr">activeTask</span>: <span class="hljs-title class_">Task</span> | <span class="hljs-literal">null</span>;
+
+  <span class="hljs-comment">// === Agents 代理 ===</span>
+  <span class="hljs-attr">activeAgents</span>: <span class="hljs-title class_">Agent</span>[];
+  <span class="hljs-attr">coordinatorState</span>: <span class="hljs-title class_">CoordinatorState</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">swarmBackend</span>: <span class="hljs-string">&quot;iterm&quot;</span> | <span class="hljs-string">&quot;tmux&quot;</span> | <span class="hljs-string">&quot;in-process&quot;</span>;
+
+  <span class="hljs-comment">// === Speculation 推测执行 ===</span>
+  <span class="hljs-attr">speculationState</span>: <span class="hljs-title class_">SpeculationState</span>;
+
+  <span class="hljs-comment">// === Remote 远程 ===</span>
+  <span class="hljs-attr">remoteSession</span>: <span class="hljs-title class_">RemoteSession</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">bridgeStatus</span>: <span class="hljs-title class_">BridgeStatus</span>;
+  <span class="hljs-attr">jwtToken</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
+
+  <span class="hljs-comment">// ... 更多字段 (Kairos, ComputerUse, Plugins 等)</span>
+}
+
+<span class="hljs-comment">// SpeculationState: 推测执行的精确状态</span>
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">SpeculationState</span> =
+  | { <span class="hljs-attr">status</span>: <span class="hljs-string">&quot;idle&quot;</span> }
+  | {
+      <span class="hljs-attr">status</span>: <span class="hljs-string">&quot;active&quot;</span>;
+      <span class="hljs-attr">abort</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>;
+      <span class="hljs-attr">startTime</span>: <span class="hljs-built_in">number</span>;
+      <span class="hljs-attr">messagesRef</span>: { <span class="hljs-attr">current</span>: <span class="hljs-title class_">Message</span>[] };
+      <span class="hljs-attr">writtenPathsRef</span>: { <span class="hljs-attr">current</span>: <span class="hljs-title class_">Set</span>&lt;<span class="hljs-built_in">string</span>&gt; };
+      <span class="hljs-attr">boundary</span>: <span class="hljs-title class_">SpeculationBoundary</span>;
+    };</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">03</span></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">onChangeAppState 副作用注册</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span><span>87</span><span>88</span><span>89</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// onChangeAppState.ts: 状态变更副作用</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">registerStateEffects</span>(<span class="hljs-params">
+  <span class="hljs-attr">store</span>: <span class="hljs-title class_">Store</span>&lt;<span class="hljs-title class_">AppState</span>&gt;
+</span>): <span class="hljs-built_in">void</span> {
+  <span class="hljs-keyword">let</span> prevState = store.<span class="hljs-title function_">get</span>();
+
+  store.<span class="hljs-title function_">subscribe</span>(<span class="hljs-function">(<span class="hljs-params">nextState</span>) =&gt;</span> {
+    <span class="hljs-comment">// model 变更 -&gt; 重算 token 限制</span>
+    <span class="hljs-keyword">if</span> (nextState.<span class="hljs-property">model</span> !== prevState.<span class="hljs-property">model</span>) {
+      <span class="hljs-keyword">const</span> limits = <span class="hljs-title function_">getModelLimits</span>(nextState.<span class="hljs-property">model</span>);
+      store.<span class="hljs-title function_">set</span>(<span class="hljs-function"><span class="hljs-params">prev</span> =&gt;</span> ({
+        ...prev,
+        <span class="hljs-attr">tokenUsage</span>: {
+          ...prev.<span class="hljs-property">tokenUsage</span>,
+          <span class="hljs-attr">maxTokens</span>: limits.<span class="hljs-property">maxOutputTokens</span>,
+          <span class="hljs-attr">contextWindow</span>: limits.<span class="hljs-property">contextWindow</span>
+        }
+      }));
+    }
+
+    <span class="hljs-comment">// permissions 变更 -&gt; 清除权限缓存</span>
+    <span class="hljs-keyword">if</span> (
+      nextState.<span class="hljs-property">grantedPermissions</span>
+        !== prevState.<span class="hljs-property">grantedPermissions</span>
+    ) {
+      <span class="hljs-title function_">clearPermissionCache</span>();
+      <span class="hljs-title function_">rebuildToolPermissions</span>(
+        nextState.<span class="hljs-property">grantedPermissions</span>
+      );
+    }
+
+    <span class="hljs-comment">// mcpClients 变更 -&gt; 重新注册工具</span>
+    <span class="hljs-keyword">if</span> (
+      nextState.<span class="hljs-property">mcpClients</span> !== prevState.<span class="hljs-property">mcpClients</span>
+    ) {
+      <span class="hljs-keyword">const</span> newTools = <span class="hljs-title function_">collectMcpTools</span>(
+        nextState.<span class="hljs-property">mcpClients</span>
+      );
+      store.<span class="hljs-title function_">set</span>(<span class="hljs-function"><span class="hljs-params">prev</span> =&gt;</span> ({
+        ...prev,
+        <span class="hljs-attr">mcpTools</span>: newTools
+      }));
+    }
+
+    <span class="hljs-comment">// speculationState 变更 -&gt; 执行控制</span>
+    <span class="hljs-keyword">if</span> (
+      nextState.<span class="hljs-property">speculationState</span>
+        !== prevState.<span class="hljs-property">speculationState</span>
+    ) {
+      <span class="hljs-keyword">if</span> (nextState.<span class="hljs-property">speculationState</span>.<span class="hljs-property">status</span> === <span class="hljs-string">&quot;active&quot;</span>) {
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(
+          <span class="hljs-string">&quot;推测执行启动 at &quot;</span>
+          + nextState.<span class="hljs-property">speculationState</span>.<span class="hljs-property">startTime</span>
+        );
+      }
+    }
+
+    prevState = nextState;
+  });
+}
+
+<span class="hljs-comment">// selectors.ts: 派生状态</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">selectAvailableTools</span>(<span class="hljs-params">
+  <span class="hljs-attr">state</span>: <span class="hljs-title class_">DeepImmutable</span>&lt;<span class="hljs-title class_">AppState</span>&gt;
+</span>): <span class="hljs-title class_">ToolDefinition</span>[] {
+  <span class="hljs-keyword">const</span> builtinTools = <span class="hljs-title function_">getBuiltinTools</span>();
+  <span class="hljs-keyword">const</span> mcpTools = state.<span class="hljs-property">mcpTools</span>;
+  <span class="hljs-keyword">const</span> pluginTools = state.<span class="hljs-property">installedPlugins</span>
+    .<span class="hljs-title function_">flatMap</span>(<span class="hljs-function"><span class="hljs-params">p</span> =&gt;</span> p.<span class="hljs-property">tools</span> || []);
+
+  <span class="hljs-keyword">return</span> [...builtinTools, ...mcpTools, ...pluginTools]
+    .<span class="hljs-title function_">filter</span>(
+      <span class="hljs-function"><span class="hljs-params">t</span> =&gt;</span> <span class="hljs-title function_">isToolPermitted</span>(t, state.<span class="hljs-property">grantedPermissions</span>)
+    );
+}
+
+<span class="hljs-comment">// bootstrap/state.ts: 全局单例（非 React）</span>
+<span class="hljs-keyword">let</span> <span class="hljs-attr">globalState</span>: <span class="hljs-title class_">AppState</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">getGlobalState</span>(<span class="hljs-params"></span>): <span class="hljs-title class_">AppState</span> {
+  <span class="hljs-keyword">if</span> (!globalState) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&quot;State not initialized&quot;</span>);
+  }
+  <span class="hljs-keyword">return</span> globalState;
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">initGlobalState</span>(<span class="hljs-params"><span class="hljs-attr">state</span>: <span class="hljs-title class_">AppState</span></span>): <span class="hljs-built_in">void</span> {
+  globalState = state;
+}</code></pre></div></div></div></div></section><section id="section-interactive" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-purple-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-purple-500" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></div><div><h2 class="section-header-title">互动</h2><p class="section-header-subtitle">步进式流程演示</p></div></div><div class="mb-8"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden"><div class="flex items-center gap-2 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-[var(--color-accent)]" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span class="text-sm font-semibold text-[var(--color-text-secondary)]">互动演示</span></div><div class="p-5"><!--$?--><template id="B:0"></template><div class="flex flex-col gap-3 animate-pulse"><div class="h-4 w-3/4 rounded bg-[var(--color-bg-tertiary)]"></div><div class="h-40 rounded-lg bg-[var(--color-bg-tertiary)]"></div><div class="h-4 w-1/2 rounded bg-[var(--color-bg-tertiary)]"></div></div><!--/$--></div></div></div><div class="prose-custom">
+    <h3>状态管理交互式演练</h3>
+    <div class="interactive-demo">
+      <div class="step" data-step="1">
+        <h4>Step 1: 理解 AppState 结构</h4>
+        <p>AppState 是一个拥有 300+ 字段的巨型对象。通过 DeepImmutable 包装，所有字段在类型层面都是只读的。直接修改会导致 TypeScript 编译错误。</p>
+        <div class="code-highlight">
+          <pre>// 编译错误! DeepImmutable 阻止直接修改
+const state = getAppState();
+state.model = "claude-4";  // Error: readonly
+
+// 正确方式: 通过 setAppState 更新
+setAppState(prev => ({
+  ...prev,
+  model: "claude-4"
+}));</pre>
+        </div>
+      </div>
+      <div class="step" data-step="2">
+        <h4>Step 2: Store 的 subscribe 机制</h4>
+        <p>createStore 的 subscribe 方法允许注册监听器。当状态变更时，所有监听器同步执行。返回的函数用于取消订阅。</p>
+        <div class="code-highlight">
+          <pre>const unsub = appStateStore.subscribe(state => {
+  console.log("Model:", state.model);
+  console.log("Tools:", state.mcpTools.length);
+});
+
+// 触发状态变更
+setAppState(prev => ({ ...prev, model: "claude-4" }));
+// 输出: Model: claude-4, Tools: 42
+
+// 取消订阅
+unsub();</pre>
+        </div>
+      </div>
+      <div class="step" data-step="3">
+        <h4>Step 3: 副作用链式触发</h4>
+        <p>状态变更会触发 onChangeAppState 中注册的副作用。例如切换模型会连锁触发 token 限制重算，这又会更新 UI 中的剩余 token 显示。</p>
+        <div class="code-highlight">
+          <pre>用户切换模型: claude-3.5 &#x2192; claude-4
+
+onChangeAppState 检测 model 变更:
+  1. 获取 claude-4 的 token 限制
+  2. 更新 tokenUsage.maxTokens: 4096 &#x2192; 16384
+  3. 更新 tokenUsage.contextWindow: 200k &#x2192; 1M
+  4. UI 自动刷新显示新的限制值</pre>
+        </div>
+      </div>
+      <div class="step" data-step="4">
+        <h4>Step 4: SpeculationState 生命周期</h4>
+        <p>推测执行的状态在 idle 和 active 之间切换。active 状态携带 abort 函数和路径追踪引用，用于在用户输入不匹配时中止推测。</p>
+        <div class="code-highlight">
+          <pre>推测执行状态流转:
+  idle &#x2192; 检测到用户可能的下一步操作
+  active {
+    startTime: 1711900000,
+    writtenPaths: {"src/api.ts", "src/types.ts"},
+    boundary: { maxTokens: 2000 }
+  }
+  &#x2192; 用户确认 &#x2192; 提交推测结果
+  &#x2192; 或用户否认 &#x2192; abort() &#x2192; 回滚 &#x2192; idle</pre>
+        </div>
+      </div>
+    </div>
+  </div></section><section class="mt-12 mb-10"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 transition-theme"><div class="flex items-center gap-2 mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-[var(--color-text-muted)]" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg><h3 class="text-sm font-semibold text-[var(--color-text-secondary)]">相关源文件</h3></div><div class="flex flex-wrap gap-2"><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">state/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">bootstrap/state.ts</span></div></div></section><nav class="grid grid-cols-2 gap-4 pt-6 border-t border-[var(--color-border)]"><a class="group flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md" href="/c17"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">上一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">Skills 与 Plugins</div></div></a><a class="group flex items-center justify-end gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md text-right" href="/c19"><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">下一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">终端 UI 框架</div></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></nav></div><!--$--><!--/$--></div></div></main><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/chunks/webpack-4741459095cd400e.js" id="_R_" async=""></script><div hidden id="S:0"><div class="space-y-6"><div class="py-4 px-4 space-y-1.5"><div class="rounded-lg border border-[var(--color-border)] overflow-hidden"><div class="bg-slate-500 text-white px-3 py-1.5 flex justify-between items-center"><span class="text-[10px] font-mono font-bold">conversationState</span><span class="text-[9px] opacity-60">对话消息历史</span></div><div class="bg-[var(--color-bg-secondary)] px-3 overflow-hidden"><div class="py-1.5 space-y-0.5"><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->messages[]</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->systemPrompt</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->tokenCount</div></div></div></div><div class="rounded-lg border border-[var(--color-border)] overflow-hidden"><div class="bg-amber-500 text-white px-3 py-1.5 flex justify-between items-center"><span class="text-[10px] font-mono font-bold">toolState</span><span class="text-[9px] opacity-60">工具注册表</span></div><div class="bg-[var(--color-bg-secondary)] px-3 overflow-hidden"><div class="py-1.5 space-y-0.5"><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->builtinTools[]</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->mcpTools[]</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->permissions</div></div></div></div><div class="rounded-lg border border-[var(--color-border)] overflow-hidden"><div class="bg-blue-500 text-white px-3 py-1.5 flex justify-between items-center"><span class="text-[10px] font-mono font-bold">configState</span><span class="text-[9px] opacity-60">运行时配置</span></div><div class="bg-[var(--color-bg-secondary)] px-3 overflow-hidden"><div class="py-1.5 space-y-0.5"><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->model</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->apiKey</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->maxTokens</div></div></div></div><div class="rounded-lg border border-[var(--color-border)] overflow-hidden"><div class="bg-slate-400 text-white px-3 py-1.5 flex justify-between items-center"><span class="text-[10px] font-mono font-bold">uiState</span><span class="text-[9px] opacity-60">界面状态</span></div><div class="bg-[var(--color-bg-secondary)] px-3 overflow-hidden"><div class="py-1.5 space-y-0.5"><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->inputMode</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->spinnerState</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->theme</div></div></div></div><div class="rounded-lg border border-[var(--color-border)] overflow-hidden"><div class="bg-emerald-500 text-white px-3 py-1.5 flex justify-between items-center"><span class="text-[10px] font-mono font-bold">sessionState</span><span class="text-[9px] opacity-60">会话元数据</span></div><div class="bg-[var(--color-bg-secondary)] px-3 overflow-hidden"><div class="py-1.5 space-y-0.5"><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->sessionId</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->cwd</div><div class="text-[10px] font-mono text-[var(--color-text-muted)]">├─ <!-- -->gitContext</div></div></div></div></div><div class="space-y-3"><div class="flex items-center justify-between"><div class="flex items-center gap-1"><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" title="重置"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw h-4 w-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button><button disabled="" class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="上一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back h-4 w-4" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg></button><button class="p-2 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" title="自动播放"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></button><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="下一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward h-4 w-4" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg></button></div><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-accent)] scale-125"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div></div><span class="text-xs font-mono text-[var(--color-text-muted)]">1<!-- --> / <!-- -->5</span></div><div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3"><div class="text-sm font-semibold text-[var(--color-text)]">AppState 总览</div><div class="text-sm text-[var(--color-text-secondary)] mt-0.5">全局状态分为 5 大模块, 各自管理不同维度的数据</div></div></div></div></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
+$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:0","S:0")</script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[9686,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"177\",\"static/chunks/app/layout-b5983c2a6e5f3636.js\"],\"default\"]\n3:I[9766,[],\"\"]\n4:I[8924,[],\"\"]\n5:I[7989,[],\"ClientSegmentRoot\"]\n6:I[1084,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"167\",\"static/chunks/app/(learn)/layout-428c68e7c724cf16.js\"],\"default\"]\n9:I[4431,[],\"OutletBoundary\"]\nb:I[5278,[],\"AsyncMetadataOutlet\"]\nd:I[4431,[],\"ViewportBoundary\"]\nf:I[4431,[],\"MetadataBoundary\"]\n10:\"$Sreact.suspense\"\n12:I[7150,[],\"\"]\n:HL[\"/_next/static/css/ad875cc29e795ab7.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"KKE32b9WFCkqyQ0X62vxy\",\"p\":\"\",\"c\":[\"\",\"c18\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"(learn)\",{\"children\":[[\"chapter\",\"c18\",\"d\"],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/ad875cc29e795ab7.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"icon\",\"href\":\"/favicon.svg\",\"type\":\"image/svg+xml\"}],[\"$\",\"script\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"\\n              (function() {\\n                try {\\n                  var mode = localStorage.getItem('theme');\\n                  if (mode === 'dark' || (!mode \u0026\u0026 window.matchMedia('(prefers-color-scheme: dark)').matches)) {\\n                    document.documentElement.classList.add('dark');\\n                  } else {\\n                    document.documentElement.classList.remove('dark');\\n                  }\\n                } catch(e) {}\\n              })();\\n            \"}}]]}],[\"$\",\"body\",null,{\"className\":\"min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased\",\"children\":[[\"$\",\"$L2\",null,{}],[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8\",\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]]}]]}],{\"children\":[\"(learn)\",[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L5\",null,{\"Component\":\"$6\",\"slots\":{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:style\",\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:1:props:style\",\"children\":404}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:style\",\"children\":[\"$\",\"h2\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:children:props:style\",\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]},\"params\":{},\"promise\":\"$@7\"}]]}],{\"children\":[[\"chapter\",\"c18\",\"d\"],[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[\"$L8\",null,[\"$\",\"$L9\",null,{\"children\":[\"$La\",[\"$\",\"$Lb\",null,{\"promise\":\"$@c\"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$Ld\",null,{\"children\":\"$Le\"}],null],[\"$\",\"$Lf\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$10\",null,{\"fallback\":null,\"children\":\"$L11\"}]}]}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$12\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"7:\"$0:f:0:1:2:children:1:props:children:1:props:params\"\n"])</script><script>self.__next_f.push([1,"13:I[5016,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"620\",\"static/chunks/620-2711a7e455946243.js\",\"6\",\"static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js\"],\"default\"]\n8:[\"$\",\"$L13\",null,{\"chapterId\":\"c18\"}]\n"])</script><script>self.__next_f.push([1,"e:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\na:null\n"])</script><script>self.__next_f.push([1,"c:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"深入 Claude Code 源码\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。\"}],[\"$\",\"meta\",\"2\",{\"name\":\"keywords\",\"content\":\"Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"11:\"$c:metadata\"\n"])</script></body></html>

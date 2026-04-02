@@ -1,0 +1,355 @@
+<!DOCTYPE html><!--KKE32b9WFCkqyQ0X62vxy--><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/ad875cc29e795ab7.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-4741459095cd400e.js"/><script src="/_next/static/chunks/4bd1b696-c023c6e3521b1417.js" async=""></script><script src="/_next/static/chunks/255-aaafc19c72668c72.js" async=""></script><script src="/_next/static/chunks/main-app-14368e47824f3575.js" async=""></script><script src="/_next/static/chunks/619-ba102abea3e3d0e4.js" async=""></script><script src="/_next/static/chunks/app/layout-b5983c2a6e5f3636.js" async=""></script><script src="/_next/static/chunks/app/(learn)/layout-428c68e7c724cf16.js" async=""></script><script src="/_next/static/chunks/620-2711a7e455946243.js" async=""></script><script src="/_next/static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js" async=""></script><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>深入 Claude Code 源码</title><meta name="description" content="从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。"/><meta name="keywords" content="Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript"/><script>
+              (function() {
+                try {
+                  var mode = localStorage.getItem('theme');
+                  if (mode === 'dark' || (!mode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            </script><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased"><div hidden=""><!--$--><!--/$--></div><header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-md"><div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"><a class="flex items-center gap-2 font-bold text-lg text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal h-5 w-5 text-[var(--color-accent)]" aria-hidden="true"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg><span>Claude Code 源码解析</span></a><nav class="hidden md:flex items-center gap-1"><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/">首页</a><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01">开始学习</a><div class="mx-2 h-5 w-px bg-[var(--color-border)]"></div><button class="p-2 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" aria-label="切换主题"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></nav><button class="md:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]" aria-label="菜单"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5" aria-hidden="true"><path d="M4 12h16"></path><path d="M4 18h16"></path><path d="M4 6h16"></path></svg></button></div></header><main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex flex-row min-h-[calc(100vh-2rem)] gap-6 py-6"><aside class="hidden md:block w-56 shrink-0"><div class="sticky top-6"><aside class="hidden md:block w-56 shrink-0"><nav class="sticky top-[calc(3.5rem+1px)] max-h-[calc(100vh-3.5rem-1px)] overflow-y-auto py-6 pr-4 space-y-6"><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">启动与基础</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">01</span><span class="truncate">启动引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c02"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">02</span><span class="truncate">配置系统</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">核心引擎</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c03"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">03</span><span class="truncate">查询引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c04"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">04</span><span class="truncate">查询循环</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c05"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">05</span><span class="truncate">API 客户端</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-amber-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">工具系统</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c06"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">06</span><span class="truncate">工具架构</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c07"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">07</span><span class="truncate">工具执行引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c08"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">08</span><span class="truncate">内置工具全景</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c09"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">09</span><span class="truncate">计划与工作流</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">安全与权限</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c10"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">10</span><span class="truncate">权限系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c11"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">11</span><span class="truncate">Hook 生命周期</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">扩展与集成</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c12"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">12</span><span class="truncate">MCP 集成</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c13"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">13</span><span class="truncate">内存与上下文</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors font-medium text-[var(--color-text)] bg-red-500/10 dark:bg-red-500/15" href="/c14"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">14</span><span class="truncate">子代理系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c15"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">15</span><span class="truncate">Teams 多代理协作</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c16"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">16</span><span class="truncate">任务与调度</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c17"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">17</span><span class="truncate">Skills 与 Plugins</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-slate-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">界面与状态</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c18"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">18</span><span class="truncate">状态管理</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c19"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">19</span><span class="truncate">终端 UI 框架</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c20"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">20</span><span class="truncate">Bridge 与远程集成</span></a></li></ul></div></nav></aside></div></aside><div class="flex-1 min-w-0"><div class="pb-20"><header class="mb-6"><a class="group mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>返回目录</a><div class="flex items-center gap-3 mb-3"><span class="layer-integration layer-badge">扩展与集成</span><span class="text-sm font-mono font-semibold text-[var(--color-text-muted)]">第 <!-- -->14<!-- --> 章</span></div><h1 class="text-3xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-4xl">子代理系统</h1><p class="mt-2 text-lg text-[var(--color-text-secondary)]">递归的 query() 调用</p><div class="relative mt-6 rounded-xl border border-[var(--color-border)] overflow-hidden"><div class="absolute inset-0 opacity-[0.08]" style="background:linear-gradient(135deg, var(--layer-integration), var(--color-accent))"></div><div class="relative px-5 py-4"><div class="flex items-start gap-3"><div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style="background-color:var(--layer-integration-light)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true" style="color:var(--layer-integration)"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-1">核心洞察</div><p class="text-[15px] font-medium leading-relaxed text-[var(--color-text)]">子代理通过递归调用 query() 实现，与主代理共享 MCP 连接但隔离上下文</p></div></div></div></div></header><div class="sticky-tabs-bar"><div class="sticky-tabs-inner"><button class="sticky-tab-item sticky-tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>学习</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>架构</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>源码</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>互动</button></div></div><section id="section-learn" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-blue-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4 text-blue-500" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><h2 class="section-header-title">学习</h2><p class="section-header-subtitle">概念讲解与核心设计分析</p></div></div><div class="prose-custom">
+    <h2>14.1 AgentTool 与子代理生成</h2>
+    <p>Claude Code 的子代理系统通过 <strong>AgentTool.tsx</strong> 提供统一的子代理生成入口。AgentTool 是一个特殊的工具，允许主代理在需要时创建独立的子代理来执行特定任务。每个子代理拥有独立的上下文窗口、工具集合和执行环境。</p>
+    <p>子代理通过 <strong>AgentDefinition</strong> 接口定义：</p>
+    <ul>
+      <li><code>name</code> — 代理名称，用于识别和日志记录</li>
+      <li><code>prompt</code> — 代理的系统提示词，定义其角色和行为</li>
+      <li><code>tools</code> — 允许使用的工具列表（可限制以保障安全）</li>
+      <li><code>maxTurns</code> — 最大交互轮次限制</li>
+      <li><code>mcpServers</code> — 代理专属的 MCP 服务器配置</li>
+    </ul>
+
+    <h2>14.2 runAgent 核心执行流程</h2>
+    <p><strong>runAgent.ts</strong> 是子代理执行的核心模块，实现了完整的代理运行循环：</p>
+    <ol>
+      <li><strong>创建子代理上下文</strong> — 初始化独立的消息历史、工具注册表和权限范围</li>
+      <li><strong>构建代理提示词</strong> — 将 AgentDefinition 的 prompt 与系统指令、上下文信息合并</li>
+      <li><strong>过滤工具集</strong> — 根据代理定义限制可用工具，例如探索代理只能使用只读工具</li>
+      <li><strong>递归调用 query()</strong> — 进入代理主循环，与 Claude 模型交互执行任务</li>
+      <li><strong>产出进度</strong> — 通过 yield 机制实时报告子代理执行进度</li>
+      <li><strong>返回摘要</strong> — 任务完成后生成执行摘要返回给父代理</li>
+    </ol>
+
+    <h2>14.3 分叉代理与缓存共享</h2>
+    <p><strong>forkSubagent.ts</strong> 实现了基于进程分叉的子代理生成。通过 fork 机制，子代理可以共享父进程的 KV 缓存和模型连接，大幅减少冷启动时间。这对于需要频繁创建子代理的场景（如多文件处理）尤为重要。</p>
+
+    <h2>14.4 自定义与内置代理</h2>
+    <p><strong>loadAgentsDir.ts</strong> 从 <code>.claude/agents/</code> 目录加载用户自定义代理定义。系统同时内置了多个专用代理：</p>
+    <ul>
+      <li><strong>exploreAgent</strong> — 快速代码库探索代理，使用只读工具集快速理解代码结构</li>
+      <li><strong>planAgent</strong> — 实现规划代理，制定详细的实现方案</li>
+      <li><strong>generalPurposeAgent</strong> — 通用多步骤任务代理，处理不适合其他专用代理的任务</li>
+      <li><strong>claudeCodeGuideAgent</strong> — Claude Code 使用指导代理</li>
+      <li><strong>statuslineSetup</strong> — 状态栏配置代理</li>
+      <li><strong>verificationAgent</strong> — 验证代理，用于验证任务执行结果</li>
+    </ul>
+
+    <h2>14.5 代理 MCP 与状态管理</h2>
+    <p>代理的 MCP 配置支持两种引用方式：</p>
+    <ul>
+      <li><strong>字符串引用</strong> — 共享父代理的 MCP 连接，多个子代理复用同一连接，减少资源消耗</li>
+      <li><strong>内联定义</strong> — 代理专属的 MCP 服务器，随代理生命周期创建和销毁</li>
+    </ul>
+    <p><strong>resumeAgent.ts</strong> 处理代理状态恢复，当代理因错误中断时可以从检查点恢复执行。<strong>agentColorManager.ts</strong> 为每个活跃代理分配唯一的显示颜色，方便在终端中区分不同代理的输出。<strong>SendMessageTool</strong> 实现代理间消息传递，允许子代理向父代理或兄弟代理发送消息。</p>
+  </div></section><section id="section-architecture" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-emerald-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4 text-emerald-500" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></div><div><h2 class="section-header-title">架构</h2><p class="section-header-subtitle">模块关系与设计决策</p></div></div><div class="prose-custom">
+    <div class="arch-diagram">
+      <h3>子代理系统架构图</h3>
+      <div class="arch-flow">
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #e94560;">主代理 (Parent Agent)</h4>
+          <div style="display: flex; justify-content: center; gap: 16px;">
+            <div style="background: #16213e; padding: 12px 20px; border-radius: 8px; border: 1px solid #e94560;">AgentTool.tsx</div>
+            <div style="background: #16213e; padding: 12px 20px; border-radius: 8px; border: 1px solid #e94560;">SendMessageTool</div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #e94560;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #0f3460;">runAgent.ts 执行引擎</h4>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+            <div style="background: #16213e; padding: 8px 12px; border-radius: 6px; border: 1px solid #0f3460; font-size: 13px;">创建上下文</div>
+            <span style="color: #0f3460; line-height: 36px;">&#x2192;</span>
+            <div style="background: #16213e; padding: 8px 12px; border-radius: 6px; border: 1px solid #0f3460; font-size: 13px;">构建提示词</div>
+            <span style="color: #0f3460; line-height: 36px;">&#x2192;</span>
+            <div style="background: #16213e; padding: 8px 12px; border-radius: 6px; border: 1px solid #0f3460; font-size: 13px;">过滤工具</div>
+            <span style="color: #0f3460; line-height: 36px;">&#x2192;</span>
+            <div style="background: #16213e; padding: 8px 12px; border-radius: 6px; border: 1px solid #0f3460; font-size: 13px;">query() 循环</div>
+            <span style="color: #0f3460; line-height: 36px;">&#x2192;</span>
+            <div style="background: #16213e; padding: 8px 12px; border-radius: 6px; border: 1px solid #0f3460; font-size: 13px;">返回摘要</div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #0f3460;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #533483;">内置代理集合</h4>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div style="background: #2d1b4e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #533483; font-size: 12px;">
+              <div style="font-weight: bold;">exploreAgent</div>
+              <div style="color: #aaa;">代码库探索</div>
+            </div>
+            <div style="background: #2d1b4e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #533483; font-size: 12px;">
+              <div style="font-weight: bold;">planAgent</div>
+              <div style="color: #aaa;">实现规划</div>
+            </div>
+            <div style="background: #2d1b4e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #533483; font-size: 12px;">
+              <div style="font-weight: bold;">generalPurpose</div>
+              <div style="color: #aaa;">通用多步骤</div>
+            </div>
+            <div style="background: #2d1b4e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #533483; font-size: 12px;">
+              <div style="font-weight: bold;">guideAgent</div>
+              <div style="color: #aaa;">使用指导</div>
+            </div>
+            <div style="background: #2d1b4e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #533483; font-size: 12px;">
+              <div style="font-weight: bold;">verificationAgent</div>
+              <div style="color: #aaa;">结果验证</div>
+            </div>
+            <div style="background: #2d1b4e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #533483; font-size: 12px;">
+              <div style="font-weight: bold;">自定义代理</div>
+              <div style="color: #aaa;">.claude/agents/</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #533483;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px;">
+          <h4 style="color: #48c9b0;">MCP 连接策略 &amp; 状态管理</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: #16213e; padding: 10px; border-radius: 8px; border: 1px solid #48c9b0; font-size: 13px;">
+              <strong>字符串引用:</strong> 共享父连接
+            </div>
+            <div style="background: #16213e; padding: 10px; border-radius: 8px; border: 1px solid #48c9b0; font-size: 13px;">
+              <strong>内联定义:</strong> 代理专属连接
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></section><section id="section-source" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-amber-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-amber-500" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg></div><div><h2 class="section-header-title">源码</h2><p class="section-header-subtitle">共 <!-- -->3<!-- --> 个关键代码示例</p></div></div><div class="space-y-8"><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">01</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">AgentDefinition 与 AgentTool</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// AgentDefinition: 代理定义接口</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">AgentDefinition</span> {
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">prompt</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">tools</span>?: <span class="hljs-built_in">string</span>[];        <span class="hljs-comment">// 允许的工具列表</span>
+  <span class="hljs-attr">maxTurns</span>?: <span class="hljs-built_in">number</span>;       <span class="hljs-comment">// 最大交互轮次</span>
+  <span class="hljs-attr">mcpServers</span>?: <span class="hljs-title class_">McpConfig</span>;  <span class="hljs-comment">// MCP 配置</span>
+  <span class="hljs-attr">model</span>?: <span class="hljs-built_in">string</span>;          <span class="hljs-comment">// 使用的模型</span>
+}
+
+<span class="hljs-comment">// 内置代理定义示例</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">exploreAgent</span>: <span class="hljs-title class_">AgentDefinition</span> = {
+  <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;exploreAgent&#x27;</span>,
+  <span class="hljs-attr">prompt</span>: <span class="hljs-string">&#x27;你是一个代码库探索专家。使用只读工具快速理解&#x27;</span>
+    + <span class="hljs-string">&#x27;代码结构、找到关键文件和理解架构设计。&#x27;</span>
+    + <span class="hljs-string">&#x27;不要修改任何文件。&#x27;</span>,
+  <span class="hljs-attr">tools</span>: [<span class="hljs-string">&#x27;Read&#x27;</span>, <span class="hljs-string">&#x27;Glob&#x27;</span>, <span class="hljs-string">&#x27;Grep&#x27;</span>, <span class="hljs-string">&#x27;LSP&#x27;</span>, <span class="hljs-string">&#x27;Bash&#x27;</span>],
+  <span class="hljs-attr">maxTurns</span>: <span class="hljs-number">15</span>
+};
+
+<span class="hljs-keyword">const</span> <span class="hljs-attr">planAgent</span>: <span class="hljs-title class_">AgentDefinition</span> = {
+  <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;planAgent&#x27;</span>,
+  <span class="hljs-attr">prompt</span>: <span class="hljs-string">&#x27;你是一个实现规划专家。分析需求后制定详细的&#x27;</span>
+    + <span class="hljs-string">&#x27;实现方案，包括文件修改计划、测试策略和风险评估。&#x27;</span>,
+  <span class="hljs-attr">tools</span>: [<span class="hljs-string">&#x27;Read&#x27;</span>, <span class="hljs-string">&#x27;Glob&#x27;</span>, <span class="hljs-string">&#x27;Grep&#x27;</span>, <span class="hljs-string">&#x27;LSP&#x27;</span>],
+  <span class="hljs-attr">maxTurns</span>: <span class="hljs-number">10</span>
+};
+
+<span class="hljs-comment">// AgentTool: 子代理生成工具</span>
+<span class="hljs-keyword">const</span> <span class="hljs-title class_">AgentTool</span> = {
+  <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Agent&#x27;</span>,
+  <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;创建子代理来执行复杂的多步骤任务&#x27;</span>,
+  <span class="hljs-attr">inputSchema</span>: {
+    <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;object&#x27;</span>,
+    <span class="hljs-attr">properties</span>: {
+      <span class="hljs-attr">agent</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;string&#x27;</span>, <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;代理名称&#x27;</span> },
+      <span class="hljs-attr">task</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;string&#x27;</span>, <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;任务描述&#x27;</span> }
+    },
+    <span class="hljs-attr">required</span>: [<span class="hljs-string">&#x27;agent&#x27;</span>, <span class="hljs-string">&#x27;task&#x27;</span>]
+  },
+  <span class="hljs-attr">execute</span>: <span class="hljs-title function_">async</span> (<span class="hljs-attr">input</span>: <span class="hljs-title class_">AgentToolInput</span>) =&gt; {
+    <span class="hljs-keyword">const</span> definition = <span class="hljs-title function_">resolveAgent</span>(input.<span class="hljs-property">agent</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">runAgent</span>(definition, input.<span class="hljs-property">task</span>);
+  }
+};</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">02</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">runAgent 核心执行循环</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// runAgent.ts: 子代理核心执行流程</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span>* <span class="hljs-title function_">runAgent</span>(
+  <span class="hljs-attr">definition</span>: <span class="hljs-title class_">AgentDefinition</span>,
+  <span class="hljs-attr">task</span>: <span class="hljs-built_in">string</span>
+): <span class="hljs-title class_">AsyncGenerator</span>&lt;<span class="hljs-title class_">AgentProgress</span>, <span class="hljs-title class_">AgentResult</span>&gt; {
+  <span class="hljs-comment">// 1. 创建子代理上下文</span>
+  <span class="hljs-keyword">const</span> context = <span class="hljs-title function_">createSubagentContext</span>({
+    <span class="hljs-attr">parentContext</span>: <span class="hljs-title function_">getCurrentContext</span>(),
+    <span class="hljs-attr">agentName</span>: definition.<span class="hljs-property">name</span>
+  });
+
+  <span class="hljs-comment">// 2. 构建代理提示词</span>
+  <span class="hljs-keyword">const</span> systemPrompt = <span class="hljs-title function_">buildAgentPrompt</span>(
+    definition.<span class="hljs-property">prompt</span>,
+    context
+  );
+
+  <span class="hljs-comment">// 3. 过滤工具集</span>
+  <span class="hljs-keyword">const</span> tools = <span class="hljs-title function_">filterTools</span>(
+    <span class="hljs-title function_">getAllTools</span>(),
+    definition.<span class="hljs-property">tools</span>  <span class="hljs-comment">// 只保留允许的工具</span>
+  );
+
+  <span class="hljs-comment">// 4. 初始化消息</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">messages</span>: <span class="hljs-title class_">Message</span>[] = [
+    { <span class="hljs-attr">role</span>: <span class="hljs-string">&#x27;user&#x27;</span>, <span class="hljs-attr">content</span>: task }
+  ];
+
+  <span class="hljs-comment">// 5. 代理执行循环</span>
+  <span class="hljs-keyword">let</span> turns = <span class="hljs-number">0</span>;
+  <span class="hljs-keyword">while</span> (turns &lt; (definition.<span class="hljs-property">maxTurns</span> || <span class="hljs-number">20</span>)) {
+    <span class="hljs-comment">// 递归调用 query()</span>
+    <span class="hljs-keyword">const</span> response = <span class="hljs-keyword">await</span> <span class="hljs-title function_">query</span>({
+      systemPrompt,
+      messages,
+      tools,
+      <span class="hljs-attr">model</span>: definition.<span class="hljs-property">model</span>
+    });
+
+    <span class="hljs-comment">// 产出进度更新</span>
+    <span class="hljs-keyword">yield</span> {
+      <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;progress&#x27;</span>,
+      <span class="hljs-attr">agent</span>: definition.<span class="hljs-property">name</span>,
+      <span class="hljs-attr">turn</span>: turns,
+      <span class="hljs-attr">content</span>: response.<span class="hljs-property">content</span>
+    };
+
+    <span class="hljs-comment">// 检查是否完成</span>
+    <span class="hljs-keyword">if</span> (!response.<span class="hljs-property">toolCalls</span> || response.<span class="hljs-property">toolCalls</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">break</span>;
+    }
+
+    <span class="hljs-comment">// 执行工具调用并追加消息</span>
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> call <span class="hljs-keyword">of</span> response.<span class="hljs-property">toolCalls</span>) {
+      <span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> <span class="hljs-title function_">executeTool</span>(call, context);
+      messages.<span class="hljs-title function_">push</span>(
+        { <span class="hljs-attr">role</span>: <span class="hljs-string">&#x27;assistant&#x27;</span>, <span class="hljs-attr">content</span>: response.<span class="hljs-property">content</span> },
+        { <span class="hljs-attr">role</span>: <span class="hljs-string">&#x27;tool&#x27;</span>, <span class="hljs-attr">content</span>: result }
+      );
+    }
+    turns++;
+  }
+
+  <span class="hljs-comment">// 6. 返回执行摘要</span>
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">agent</span>: definition.<span class="hljs-property">name</span>,
+    <span class="hljs-attr">summary</span>: messages[messages.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>].<span class="hljs-property">content</span>,
+    <span class="hljs-attr">turnsUsed</span>: turns
+  };
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">03</span></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">forkSubagent 与自定义代理加载</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// forkSubagent.ts: 基于进程分叉的子代理</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">forkSubagent</span>(<span class="hljs-params">
+  <span class="hljs-attr">definition</span>: <span class="hljs-title class_">AgentDefinition</span>,
+  <span class="hljs-attr">task</span>: <span class="hljs-built_in">string</span>
+</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">AgentResult</span>&gt; {
+  <span class="hljs-comment">// 分叉当前进程，共享 KV 缓存</span>
+  <span class="hljs-keyword">const</span> child = <span class="hljs-title function_">fork</span>(process.<span class="hljs-property">argv</span>[<span class="hljs-number">1</span>], {
+    <span class="hljs-attr">env</span>: {
+      ...process.<span class="hljs-property">env</span>,
+      <span class="hljs-attr">AGENT_MODE</span>: <span class="hljs-string">&#x27;subagent&#x27;</span>,
+      <span class="hljs-attr">AGENT_NAME</span>: definition.<span class="hljs-property">name</span>,
+      <span class="hljs-attr">AGENT_TASK</span>: task,
+      <span class="hljs-comment">// 共享父进程的缓存路径</span>
+      <span class="hljs-attr">CACHE_DIR</span>: <span class="hljs-title function_">getCacheDir</span>()
+    }
+  });
+
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve, reject</span>) =&gt;</span> {
+    child.<span class="hljs-title function_">on</span>(<span class="hljs-string">&#x27;message&#x27;</span>, <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">msg</span>: <span class="hljs-title class_">AgentMessage</span></span>) =&gt;</span> {
+      <span class="hljs-keyword">if</span> (msg.<span class="hljs-property">type</span> === <span class="hljs-string">&#x27;result&#x27;</span>) {
+        <span class="hljs-title function_">resolve</span>(msg.<span class="hljs-property">data</span>);
+      }
+    });
+    child.<span class="hljs-title function_">on</span>(<span class="hljs-string">&#x27;error&#x27;</span>, reject);
+    child.<span class="hljs-title function_">on</span>(<span class="hljs-string">&#x27;exit&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">code</span>) =&gt;</span> {
+      <span class="hljs-keyword">if</span> (code !== <span class="hljs-number">0</span>) {
+        <span class="hljs-title function_">reject</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(
+          <span class="hljs-string">&#x27;Subagent exited with code &#x27;</span> + code
+        ));
+      }
+    });
+  });
+}
+
+<span class="hljs-comment">// loadAgentsDir.ts: 加载自定义代理</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">loadAgentsDir</span>(<span class="hljs-params">
+  <span class="hljs-attr">dir</span>: <span class="hljs-built_in">string</span>
+</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">AgentDefinition</span>[]&gt; {
+  <span class="hljs-keyword">const</span> agentsPath = <span class="hljs-title function_">join</span>(dir, <span class="hljs-string">&#x27;.claude&#x27;</span>, <span class="hljs-string">&#x27;agents&#x27;</span>);
+  <span class="hljs-keyword">const</span> files = <span class="hljs-keyword">await</span> <span class="hljs-title function_">readdir</span>(agentsPath).<span class="hljs-title function_">catch</span>(<span class="hljs-function">() =&gt;</span> []);
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">agents</span>: <span class="hljs-title class_">AgentDefinition</span>[] = [];
+
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> file <span class="hljs-keyword">of</span> files) {
+    <span class="hljs-keyword">if</span> (!file.<span class="hljs-title function_">endsWith</span>(<span class="hljs-string">&#x27;.md&#x27;</span>)) <span class="hljs-keyword">continue</span>;
+    <span class="hljs-keyword">const</span> content = <span class="hljs-keyword">await</span> <span class="hljs-title function_">readFile</span>(
+      <span class="hljs-title function_">join</span>(agentsPath, file), <span class="hljs-string">&#x27;utf-8&#x27;</span>
+    );
+    <span class="hljs-comment">// 解析 frontmatter 获取代理配置</span>
+    <span class="hljs-keyword">const</span> { frontmatter, body } = <span class="hljs-title function_">parseFrontmatter</span>(content);
+    agents.<span class="hljs-title function_">push</span>({
+      <span class="hljs-attr">name</span>: frontmatter.<span class="hljs-property">name</span> || <span class="hljs-title function_">basename</span>(file, <span class="hljs-string">&#x27;.md&#x27;</span>),
+      <span class="hljs-attr">prompt</span>: body,
+      <span class="hljs-attr">tools</span>: frontmatter.<span class="hljs-property">tools</span>,
+      <span class="hljs-attr">maxTurns</span>: frontmatter.<span class="hljs-property">maxTurns</span>,
+      <span class="hljs-attr">mcpServers</span>: frontmatter.<span class="hljs-property">mcpServers</span>
+    });
+  }
+  <span class="hljs-keyword">return</span> agents;
+}
+
+<span class="hljs-comment">// agentColorManager.ts: 代理颜色分配</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AgentColorManager</span> {
+  <span class="hljs-keyword">private</span> colors = [
+    <span class="hljs-string">&#x27;#e94560&#x27;</span>, <span class="hljs-string">&#x27;#0f3460&#x27;</span>, <span class="hljs-string">&#x27;#533483&#x27;</span>,
+    <span class="hljs-string">&#x27;#48c9b0&#x27;</span>, <span class="hljs-string">&#x27;#f39c12&#x27;</span>, <span class="hljs-string">&#x27;#3498db&#x27;</span>
+  ];
+  <span class="hljs-keyword">private</span> assignments = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>&gt;();
+
+  <span class="hljs-title function_">getColor</span>(<span class="hljs-attr">agentName</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">assignments</span>.<span class="hljs-title function_">has</span>(agentName)) {
+      <span class="hljs-keyword">const</span> idx = <span class="hljs-variable language_">this</span>.<span class="hljs-property">assignments</span>.<span class="hljs-property">size</span> % <span class="hljs-variable language_">this</span>.<span class="hljs-property">colors</span>.<span class="hljs-property">length</span>;
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">assignments</span>.<span class="hljs-title function_">set</span>(agentName, <span class="hljs-variable language_">this</span>.<span class="hljs-property">colors</span>[idx]);
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">assignments</span>.<span class="hljs-title function_">get</span>(agentName)!;
+  }
+}</code></pre></div></div></div></div></section><section id="section-interactive" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-purple-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-purple-500" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></div><div><h2 class="section-header-title">互动</h2><p class="section-header-subtitle">步进式流程演示</p></div></div><div class="mb-8"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden"><div class="flex items-center gap-2 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-[var(--color-accent)]" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span class="text-sm font-semibold text-[var(--color-text-secondary)]">互动演示</span></div><div class="p-5"><!--$?--><template id="B:0"></template><div class="flex flex-col gap-3 animate-pulse"><div class="h-4 w-3/4 rounded bg-[var(--color-bg-tertiary)]"></div><div class="h-40 rounded-lg bg-[var(--color-bg-tertiary)]"></div><div class="h-4 w-1/2 rounded bg-[var(--color-bg-tertiary)]"></div></div><!--/$--></div></div></div><div class="prose-custom">
+    <h3>子代理执行交互式演练</h3>
+    <div class="interactive-demo">
+      <div class="step" data-step="1">
+        <h4>Step 1: 主代理决定委派任务</h4>
+        <p>当主代理判断当前任务需要独立探索代码库时，调用 AgentTool 创建一个 exploreAgent 子代理。主代理提供明确的任务描述。</p>
+        <div class="code-highlight">
+          <pre>// 主代理调用 AgentTool
+AgentTool.execute({
+  agent: 'exploreAgent',
+  task: '分析 src/services/ 目录的架构设计，找到所有服务间的依赖关系'
+})</pre>
+        </div>
+      </div>
+      <div class="step" data-step="2">
+        <h4>Step 2: runAgent 初始化子代理</h4>
+        <p>runAgent 创建独立的执行上下文，构建针对探索任务优化的提示词，并将工具集限制为只读工具（Read、Glob、Grep、LSP）。子代理无法修改任何文件。</p>
+        <div class="code-highlight">
+          <pre>// 工具过滤
+允许的工具: Read, Glob, Grep, LSP, Bash
+禁止的工具: Write, Edit, NotebookEdit（只读模式）</pre>
+        </div>
+      </div>
+      <div class="step" data-step="3">
+        <h4>Step 3: 子代理自主执行</h4>
+        <p>子代理进入独立的执行循环，自主使用工具探索代码库。每个交互轮次会通过 yield 向父代理报告进度。子代理最多执行 15 轮（exploreAgent 的 maxTurns 限制）。</p>
+      </div>
+      <div class="step" data-step="4">
+        <h4>Step 4: 结果摘要返回</h4>
+        <p>子代理完成探索后，生成结构化的执行摘要返回给主代理。摘要包含发现的架构信息、关键文件列表和依赖关系图。主代理据此继续后续工作。</p>
+        <div class="code-highlight">
+          <pre>// 返回结果
+{
+  agent: 'exploreAgent',
+  summary: '发现 12 个服务模块，核心依赖链...',
+  turnsUsed: 8
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div></section><section class="mt-12 mb-10"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 transition-theme"><div class="flex items-center gap-2 mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-[var(--color-text-muted)]" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg><h3 class="text-sm font-semibold text-[var(--color-text-secondary)]">相关源文件</h3></div><div class="flex flex-wrap gap-2"><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">tools/AgentTool/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">tools/SendMessageTool/</span></div></div></section><nav class="grid grid-cols-2 gap-4 pt-6 border-t border-[var(--color-border)]"><a class="group flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md" href="/c13"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">上一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">内存与上下文</div></div></a><a class="group flex items-center justify-end gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md text-right" href="/c15"><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">下一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">Teams 多代理协作</div></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></nav></div><!--$--><!--/$--></div></div></main><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/chunks/webpack-4741459095cd400e.js" id="_R_" async=""></script><div hidden id="S:0"><div class="space-y-6"><div class="py-6 px-4"><div class="flex flex-col items-center gap-3"><div class="bg-red-500 text-white rounded-xl w-32 h-14 flex flex-col items-center justify-center shadow-lg"><span class="text-xs font-bold">主代理</span><span class="text-[10px] opacity-60">Main Agent</span></div><div class="text-lg font-bold text-[var(--color-text-muted)]">↓ query()</div><div class="flex gap-3"><div class="bg-red-400 text-white rounded-lg w-24 h-16 flex flex-col items-center justify-center shadow-md"><span class="text-[10px] font-bold">子代理 A</span></div><div class="bg-red-400 text-white rounded-lg w-24 h-16 flex flex-col items-center justify-center shadow-md"><span class="text-[10px] font-bold">子代理 B</span></div></div><div class="text-lg font-bold text-emerald-500">↑ tool_result</div><div class="flex flex-col items-center gap-1"><span class="text-[10px] text-[var(--color-text-muted)]">↓ 递归</span><div class="bg-red-300 text-white rounded-md w-20 h-10 flex items-center justify-center shadow-sm text-[10px] font-bold">子子代理</div></div></div></div><div class="space-y-3"><div class="flex items-center justify-between"><div class="flex items-center gap-1"><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" title="重置"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw h-4 w-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button><button disabled="" class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="上一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back h-4 w-4" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg></button><button class="p-2 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" title="自动播放"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></button><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="下一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward h-4 w-4" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg></button></div><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-accent)] scale-125"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div></div><span class="text-xs font-mono text-[var(--color-text-muted)]">1<!-- --> / <!-- -->5</span></div><div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3"><div class="text-sm font-semibold text-[var(--color-text)]">主代理运行</div><div class="text-sm text-[var(--color-text-secondary)] mt-0.5">用户对话由主 Agent 处理, 拥有完整上下文</div></div></div></div></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
+$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:0","S:0")</script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[9686,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"177\",\"static/chunks/app/layout-b5983c2a6e5f3636.js\"],\"default\"]\n3:I[9766,[],\"\"]\n4:I[8924,[],\"\"]\n5:I[7989,[],\"ClientSegmentRoot\"]\n6:I[1084,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"167\",\"static/chunks/app/(learn)/layout-428c68e7c724cf16.js\"],\"default\"]\n9:I[4431,[],\"OutletBoundary\"]\nb:I[5278,[],\"AsyncMetadataOutlet\"]\nd:I[4431,[],\"ViewportBoundary\"]\nf:I[4431,[],\"MetadataBoundary\"]\n10:\"$Sreact.suspense\"\n12:I[7150,[],\"\"]\n:HL[\"/_next/static/css/ad875cc29e795ab7.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"KKE32b9WFCkqyQ0X62vxy\",\"p\":\"\",\"c\":[\"\",\"c14\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"(learn)\",{\"children\":[[\"chapter\",\"c14\",\"d\"],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/ad875cc29e795ab7.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"icon\",\"href\":\"/favicon.svg\",\"type\":\"image/svg+xml\"}],[\"$\",\"script\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"\\n              (function() {\\n                try {\\n                  var mode = localStorage.getItem('theme');\\n                  if (mode === 'dark' || (!mode \u0026\u0026 window.matchMedia('(prefers-color-scheme: dark)').matches)) {\\n                    document.documentElement.classList.add('dark');\\n                  } else {\\n                    document.documentElement.classList.remove('dark');\\n                  }\\n                } catch(e) {}\\n              })();\\n            \"}}]]}],[\"$\",\"body\",null,{\"className\":\"min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased\",\"children\":[[\"$\",\"$L2\",null,{}],[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8\",\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]]}]]}],{\"children\":[\"(learn)\",[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L5\",null,{\"Component\":\"$6\",\"slots\":{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:style\",\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:1:props:style\",\"children\":404}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:style\",\"children\":[\"$\",\"h2\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:children:props:style\",\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]},\"params\":{},\"promise\":\"$@7\"}]]}],{\"children\":[[\"chapter\",\"c14\",\"d\"],[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[\"$L8\",null,[\"$\",\"$L9\",null,{\"children\":[\"$La\",[\"$\",\"$Lb\",null,{\"promise\":\"$@c\"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$Ld\",null,{\"children\":\"$Le\"}],null],[\"$\",\"$Lf\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$10\",null,{\"fallback\":null,\"children\":\"$L11\"}]}]}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$12\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"7:\"$0:f:0:1:2:children:1:props:children:1:props:params\"\n"])</script><script>self.__next_f.push([1,"13:I[5016,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"620\",\"static/chunks/620-2711a7e455946243.js\",\"6\",\"static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js\"],\"default\"]\n8:[\"$\",\"$L13\",null,{\"chapterId\":\"c14\"}]\n"])</script><script>self.__next_f.push([1,"e:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\na:null\n"])</script><script>self.__next_f.push([1,"c:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"深入 Claude Code 源码\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。\"}],[\"$\",\"meta\",\"2\",{\"name\":\"keywords\",\"content\":\"Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"11:\"$c:metadata\"\n"])</script></body></html>

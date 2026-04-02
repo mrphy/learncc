@@ -1,0 +1,472 @@
+<!DOCTYPE html><!--KKE32b9WFCkqyQ0X62vxy--><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/ad875cc29e795ab7.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-4741459095cd400e.js"/><script src="/_next/static/chunks/4bd1b696-c023c6e3521b1417.js" async=""></script><script src="/_next/static/chunks/255-aaafc19c72668c72.js" async=""></script><script src="/_next/static/chunks/main-app-14368e47824f3575.js" async=""></script><script src="/_next/static/chunks/619-ba102abea3e3d0e4.js" async=""></script><script src="/_next/static/chunks/app/layout-b5983c2a6e5f3636.js" async=""></script><script src="/_next/static/chunks/app/(learn)/layout-428c68e7c724cf16.js" async=""></script><script src="/_next/static/chunks/620-2711a7e455946243.js" async=""></script><script src="/_next/static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js" async=""></script><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>深入 Claude Code 源码</title><meta name="description" content="从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。"/><meta name="keywords" content="Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript"/><script>
+              (function() {
+                try {
+                  var mode = localStorage.getItem('theme');
+                  if (mode === 'dark' || (!mode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            </script><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased"><div hidden=""><!--$--><!--/$--></div><header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-md"><div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"><a class="flex items-center gap-2 font-bold text-lg text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal h-5 w-5 text-[var(--color-accent)]" aria-hidden="true"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg><span>Claude Code 源码解析</span></a><nav class="hidden md:flex items-center gap-1"><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/">首页</a><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01">开始学习</a><div class="mx-2 h-5 w-px bg-[var(--color-border)]"></div><button class="p-2 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" aria-label="切换主题"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></nav><button class="md:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]" aria-label="菜单"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5" aria-hidden="true"><path d="M4 12h16"></path><path d="M4 18h16"></path><path d="M4 6h16"></path></svg></button></div></header><main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex flex-row min-h-[calc(100vh-2rem)] gap-6 py-6"><aside class="hidden md:block w-56 shrink-0"><div class="sticky top-6"><aside class="hidden md:block w-56 shrink-0"><nav class="sticky top-[calc(3.5rem+1px)] max-h-[calc(100vh-3.5rem-1px)] overflow-y-auto py-6 pr-4 space-y-6"><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">启动与基础</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">01</span><span class="truncate">启动引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c02"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">02</span><span class="truncate">配置系统</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">核心引擎</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c03"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">03</span><span class="truncate">查询引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c04"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">04</span><span class="truncate">查询循环</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c05"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">05</span><span class="truncate">API 客户端</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-amber-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">工具系统</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c06"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">06</span><span class="truncate">工具架构</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c07"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">07</span><span class="truncate">工具执行引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors font-medium text-[var(--color-text)] bg-amber-500/10 dark:bg-amber-500/15" href="/c08"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">08</span><span class="truncate">内置工具全景</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c09"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">09</span><span class="truncate">计划与工作流</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">安全与权限</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c10"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">10</span><span class="truncate">权限系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c11"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">11</span><span class="truncate">Hook 生命周期</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">扩展与集成</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c12"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">12</span><span class="truncate">MCP 集成</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c13"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">13</span><span class="truncate">内存与上下文</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c14"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">14</span><span class="truncate">子代理系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c15"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">15</span><span class="truncate">Teams 多代理协作</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c16"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">16</span><span class="truncate">任务与调度</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c17"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">17</span><span class="truncate">Skills 与 Plugins</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-slate-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">界面与状态</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c18"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">18</span><span class="truncate">状态管理</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c19"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">19</span><span class="truncate">终端 UI 框架</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c20"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">20</span><span class="truncate">Bridge 与远程集成</span></a></li></ul></div></nav></aside></div></aside><div class="flex-1 min-w-0"><div class="pb-20"><header class="mb-6"><a class="group mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>返回目录</a><div class="flex items-center gap-3 mb-3"><span class="layer-tools layer-badge">工具系统</span><span class="text-sm font-mono font-semibold text-[var(--color-text-muted)]">第 <!-- -->08<!-- --> 章</span></div><h1 class="text-3xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-4xl">内置工具全景</h1><p class="mt-2 text-lg text-[var(--color-text-secondary)]">Bash·文件·搜索·LSP</p><div class="relative mt-6 rounded-xl border border-[var(--color-border)] overflow-hidden"><div class="absolute inset-0 opacity-[0.08]" style="background:linear-gradient(135deg, var(--layer-tools), var(--color-accent))"></div><div class="relative px-5 py-4"><div class="flex items-start gap-3"><div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style="background-color:var(--layer-tools-light)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true" style="color:var(--layer-tools)"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-1">核心洞察</div><p class="text-[15px] font-medium leading-relaxed text-[var(--color-text)]">Bash 工具通过 AST 解析实现语义级命令分类，区分只读/破坏性/搜索操作</p></div></div></div></div></header><div class="sticky-tabs-bar"><div class="sticky-tabs-inner"><button class="sticky-tab-item sticky-tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>学习</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>架构</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>源码</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>互动</button></div></div><section id="section-learn" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-blue-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4 text-blue-500" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><h2 class="section-header-title">学习</h2><p class="section-header-subtitle">概念讲解与核心设计分析</p></div></div><div class="prose-custom">
+<h2>内置工具全景概述</h2>
+<blockquote>Claude Code 内置了 42+ 种工具，涵盖文件操作、代码搜索、命令执行、Web 访问、代码智能等多个领域。每种工具都针对特定场景做了深度优化。本章深入剖析最核心的几个工具的内部实现。</blockquote>
+
+<h3>BashTool：最复杂的工具（20+ 文件）</h3>
+<p>BashTool 是整个工具系统中最复杂的工具，由 20+ 个文件组成。它不仅要执行 shell 命令，还要理解命令的语义、评估安全风险、决定是否沙箱化。</p>
+
+<h4>命令分类系统</h4>
+<p>BashTool 将 shell 命令分为多个类别，每个类别有不同的权限和行为策略：</p>
+<ul>
+<li><code>BASH_SEARCH_COMMANDS</code> — 搜索类命令（grep、find、rg 等）：只读，可并发</li>
+<li><code>BASH_READ_COMMANDS</code> — 读取类命令（cat、head、tail 等）：只读，可并发</li>
+<li><code>BASH_LIST_COMMANDS</code> — 列表类命令（ls、tree、du 等）：只读，可并发</li>
+<li><code>BASH_SILENT_COMMANDS</code> — 静默类命令（cd、pwd 等）：无副作用，自动允许</li>
+</ul>
+<p>不属于以上类别的命令被视为"可能有副作用"，需要更严格的权限检查。</p>
+
+<h4>AST 分析（treeSitterAnalysis）</h4>
+<p>BashTool 使用 Tree-sitter 将 shell 命令解析为 AST（抽象语法树），而不是简单的字符串匹配：</p>
+<ul>
+<li>能正确识别管道：<code>cat file | grep pattern</code> 中 cat 是只读的</li>
+<li>能识别命令替换：<code>$(rm -rf /)</code> 被嵌入到看似无害的命令中</li>
+<li>能识别重定向：<code>echo "data" > file</code> 虽然用了 echo 但有写操作</li>
+<li>能识别 && 和 || 链：<code>test -f file && rm file</code> 包含破坏性操作</li>
+</ul>
+
+<h4>沙箱决策（shouldUseSandbox）</h4>
+<p>对于不信任的命令，BashTool 可以在沙箱中执行：</p>
+<ul>
+<li>判断逻辑综合考虑：命令类别、用户权限模式、沙箱可用性</li>
+<li>沙箱通过 <code>sandbox-adapter.ts</code> 对接不同的沙箱实现</li>
+<li>沙箱内的命令无法访问主机文件系统（除显式挂载的目录）</li>
+</ul>
+
+<h4>sed 编辑检测</h4>
+<p>BashTool 能检测用户是否通过 <code>sed</code> 命令编辑文件，并提示用户使用更安全的 FileEditTool：</p>
+<ul>
+<li>检测 <code>sed -i</code>（in-place 编辑）模式</li>
+<li>提供"建议使用 Edit 工具"的提示，因为 Edit 工具有冲突检测</li>
+</ul>
+
+<h3>FileEditTool：精确文本替换</h3>
+<p>FileEditTool 实现了 <code>old_string → new_string</code> 的精确替换逻辑：</p>
+<ul>
+<li><strong>唯一性检测</strong> — old_string 必须在文件中唯一匹配。如果匹配到多处，工具报错并提示用户提供更多上下文以区分</li>
+<li><strong>Diff 计算</strong> — 替换前后计算 diff，用于 UI 展示和版本历史</li>
+<li><strong>replace_all 模式</strong> — 可选的全局替换模式，允许替换所有匹配项</li>
+<li><strong>空白敏感</strong> — 精确匹配缩进和空白字符，避免意外替换</li>
+</ul>
+
+<h3>FileReadTool：多格式智能读取</h3>
+<p>FileReadTool 不只是简单的文件读取，它支持多种文件格式：</p>
+<ul>
+<li><strong>文本文件</strong> — 带行号输出（<code>cat -n</code> 格式），支持 offset 和 limit 参数</li>
+<li><strong>图片</strong> — PNG/JPG 等图片经过处理管线：检测尺寸 → 按需 resize → 降采样 → 转为 base64 发送给多模态 Claude</li>
+<li><strong>PDF</strong> — 支持页面范围读取（<code>pages: "1-5"</code>），大 PDF 强制要求指定页面范围</li>
+<li><strong>Jupyter Notebook</strong> — 解析 .ipynb JSON 格式，展示代码单元、输出和可视化</li>
+<li><strong>大小限制</strong> — 默认读取前 2000 行，超大文件提示用户使用 offset 分段读取</li>
+</ul>
+
+<h3>FileWriteTool：智能写入</h3>
+<p>FileWriteTool 在写入文件时做了多项智能检测：</p>
+<ul>
+<li><strong>编码检测</strong> — 自动检测现有文件的编码（UTF-8、Latin-1 等），新文件使用同样编码写入</li>
+<li><strong>行尾检测</strong> — 检测现有文件使用 LF 还是 CRLF 行尾，保持一致性</li>
+<li><strong>文件历史</strong> — 写入前记录文件状态到历史中，支持后续的 diff 查看和撤销</li>
+</ul>
+
+<h3>GlobTool：高速文件搜索</h3>
+<p>GlobTool 使用 ripgrep 的文件匹配引擎（而非 Node.js 的 glob 库）：</p>
+<ul>
+<li>支持标准 glob 模式（<code>**/*.ts</code>、<code>src/**/*.{js,jsx}</code>）</li>
+<li>结果按文件修改时间排序（最近修改的文件排在前面）</li>
+<li>性能远超 Node.js 原生 glob，处理大型仓库（10万+ 文件）依然快速</li>
+</ul>
+
+<h3>GrepTool：多模式搜索</h3>
+<p>GrepTool 是 ripgrep 的包装器，提供三种输出模式：</p>
+<ul>
+<li><code>content</code> — 显示匹配行的完整内容，支持 -A/-B/-C 上下文行</li>
+<li><code>files_with_matches</code> — 只显示包含匹配的文件路径（默认模式）</li>
+<li><code>count</code> — 显示每个文件的匹配次数</li>
+</ul>
+
+<h3>LSPTool：代码智能</h3>
+<p>LSPTool 通过 Language Server Protocol 提供 IDE 级别的代码智能：</p>
+<ul>
+<li><code>goToDefinition</code> — 跳转到符号定义</li>
+<li><code>findReferences</code> — 查找所有引用</li>
+<li><code>hover</code> — 获取悬停信息（类型、文档）</li>
+<li><code>documentSymbol</code> — 获取文件中的所有符号</li>
+<li><code>workspaceSymbol</code> — 全工作区符号搜索</li>
+<li><code>goToImplementation</code> — 查找接口实现</li>
+<li><code>prepareCallHierarchy</code> / <code>incomingCalls</code> / <code>outgoingCalls</code> — 调用层次分析</li>
+</ul>
+
+<h3>其他工具</h3>
+<p>除上述核心工具外，Claude Code 还包含：</p>
+<ul>
+<li><strong>WebFetchTool</strong> — 获取网页内容并转换为 Markdown</li>
+<li><strong>WebSearchTool</strong> — Web 搜索并返回结构化结果</li>
+<li><strong>NotebookEditTool</strong> — 编辑 Jupyter Notebook 单元格</li>
+<li><strong>PowerShellTool</strong> — Windows PowerShell 执行（特性门控）</li>
+<li>总计 <strong>42+</strong> 种工具，覆盖开发工作流的各个环节</li>
+</ul>
+</div></section><section id="section-architecture" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-emerald-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4 text-emerald-500" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></div><div><h2 class="section-header-title">架构</h2><p class="section-header-subtitle">模块关系与设计决策</p></div></div><div class="prose-custom">
+<h2>内置工具架构</h2>
+
+<h3>工具分类矩阵</h3>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>工具</th><th>只读?</th><th>并发安全?</th><th>复杂度</th><th>关键特性</th></tr></thead>
+<tbody>
+<tr><td>BashTool</td><td>视命令</td><td>否</td><td>极高（20+ 文件）</td><td>AST 分析、沙箱、命令分类</td></tr>
+<tr><td>FileEditTool</td><td>否</td><td>否</td><td>中</td><td>唯一性检测、diff 计算</td></tr>
+<tr><td>FileReadTool</td><td>是</td><td>是</td><td>中</td><td>多格式支持、图片处理</td></tr>
+<tr><td>FileWriteTool</td><td>否</td><td>否</td><td>低</td><td>编码检测、行尾检测</td></tr>
+<tr><td>GlobTool</td><td>是</td><td>是</td><td>低</td><td>ripgrep 引擎、mod-time 排序</td></tr>
+<tr><td>GrepTool</td><td>是</td><td>是</td><td>低</td><td>三种输出模式、上下文行</td></tr>
+<tr><td>LSPTool</td><td>是</td><td>是</td><td>中</td><td>8 种 LSP 操作</td></tr>
+<tr><td>WebFetchTool</td><td>是</td><td>是</td><td>中</td><td>HTML→Markdown 转换</td></tr>
+<tr><td>WebSearchTool</td><td>是</td><td>是</td><td>低</td><td>结构化搜索结果</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>BashTool 内部架构</h3>
+<p>BashTool 的 20+ 文件按职责分层：</p>
+<ol>
+<li><strong>入口层</strong>：BashTool.ts — call() 方法，统筹整个执行流程</li>
+<li><strong>分析层</strong>：treeSitterAnalysis.ts — AST 解析和命令语义理解</li>
+<li><strong>分类层</strong>：commandClassification.ts — 命令类别判断</li>
+<li><strong>安全层</strong>：shouldUseSandbox.ts — 沙箱决策逻辑</li>
+<li><strong>执行层</strong>：processExecution.ts — 子进程管理和输出捕获</li>
+<li><strong>检测层</strong>：sedDetection.ts — sed 编辑检测和建议</li>
+</ol>
+
+<h3>FileReadTool 图片处理管线</h3>
+<ol>
+<li><strong>格式检测</strong> → 通过文件扩展名和 magic bytes 判断类型</li>
+<li><strong>尺寸检测</strong> → 读取图片元数据获取宽×高</li>
+<li><strong>Resize 决策</strong> → 超过阈值（如 2048px）则缩小</li>
+<li><strong>降采样</strong> → 减少颜色深度以减小体积</li>
+<li><strong>Base64 编码</strong> → 转换为 API 兼容的 base64 字符串</li>
+<li><strong>嵌入消息</strong> → 作为 image content block 发送给 Claude</li>
+</ol>
+
+<h3>设计决策</h3>
+<blockquote>
+<p><strong>为什么 BashTool 要用 Tree-sitter 而不是正则表达式？</strong></p>
+<p>Shell 命令的语法极其复杂：嵌套引号、命令替换、进程替换、here-doc 等。正则表达式无法可靠地解析 <code>echo "$(cat file | grep 'pattern')" > output</code> 这样的命令。Tree-sitter 提供了完整的 AST，可以准确识别每个子命令、每个重定向、每个替换。虽然增加了依赖和复杂度，但这是安全性的基础。</p>
+</blockquote>
+</div></section><section id="section-source" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-amber-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-amber-500" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg></div><div><h2 class="section-header-title">源码</h2><p class="section-header-subtitle">共 <!-- -->3<!-- --> 个关键代码示例</p></div></div><div class="space-y-8"><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">01</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">BashTool 命令分类与 AST 分析</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// tools/BashTool/commandClassification.ts — 简化版</span>
+
+<span class="hljs-comment">// 命令分类常量</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASH_SEARCH_COMMANDS</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>([
+  <span class="hljs-string">&#x27;grep&#x27;</span>, <span class="hljs-string">&#x27;rg&#x27;</span>, <span class="hljs-string">&#x27;find&#x27;</span>, <span class="hljs-string">&#x27;fd&#x27;</span>, <span class="hljs-string">&#x27;ag&#x27;</span>, <span class="hljs-string">&#x27;ack&#x27;</span>,
+  <span class="hljs-string">&#x27;locate&#x27;</span>, <span class="hljs-string">&#x27;which&#x27;</span>, <span class="hljs-string">&#x27;whereis&#x27;</span>, <span class="hljs-string">&#x27;type&#x27;</span>,
+])
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASH_READ_COMMANDS</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>([
+  <span class="hljs-string">&#x27;cat&#x27;</span>, <span class="hljs-string">&#x27;head&#x27;</span>, <span class="hljs-string">&#x27;tail&#x27;</span>, <span class="hljs-string">&#x27;less&#x27;</span>, <span class="hljs-string">&#x27;more&#x27;</span>,
+  <span class="hljs-string">&#x27;wc&#x27;</span>, <span class="hljs-string">&#x27;file&#x27;</span>, <span class="hljs-string">&#x27;stat&#x27;</span>, <span class="hljs-string">&#x27;md5sum&#x27;</span>, <span class="hljs-string">&#x27;sha256sum&#x27;</span>,
+])
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASH_LIST_COMMANDS</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>([
+  <span class="hljs-string">&#x27;ls&#x27;</span>, <span class="hljs-string">&#x27;tree&#x27;</span>, <span class="hljs-string">&#x27;du&#x27;</span>, <span class="hljs-string">&#x27;df&#x27;</span>, <span class="hljs-string">&#x27;find&#x27;</span>, <span class="hljs-string">&#x27;exa&#x27;</span>,
+])
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">BASH_SILENT_COMMANDS</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>([
+  <span class="hljs-string">&#x27;cd&#x27;</span>, <span class="hljs-string">&#x27;pwd&#x27;</span>, <span class="hljs-string">&#x27;echo&#x27;</span>, <span class="hljs-string">&#x27;printf&#x27;</span>, <span class="hljs-string">&#x27;true&#x27;</span>, <span class="hljs-string">&#x27;false&#x27;</span>,
+  <span class="hljs-string">&#x27;test&#x27;</span>, <span class="hljs-string">&#x27;[&#x27;</span>, <span class="hljs-string">&#x27;[[&#x27;</span>,
+])
+
+<span class="hljs-comment">// treeSitterAnalysis.ts — AST 分析</span>
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">Parser</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;tree-sitter&#x27;</span>
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">Bash</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;tree-sitter-bash&#x27;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">analyzeCommand</span>(<span class="hljs-params"><span class="hljs-attr">command</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-title class_">CommandAnalysis</span> {
+  <span class="hljs-keyword">const</span> parser = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Parser</span>()
+  parser.<span class="hljs-title function_">setLanguage</span>(<span class="hljs-title class_">Bash</span>)
+  <span class="hljs-keyword">const</span> tree = parser.<span class="hljs-title function_">parse</span>(command)
+
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">analysis</span>: <span class="hljs-title class_">CommandAnalysis</span> = {
+    <span class="hljs-attr">commands</span>: [],       <span class="hljs-comment">// 所有命令名</span>
+    <span class="hljs-attr">hasRedirection</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">hasPipe</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">hasCommandSubstitution</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">hasDestructiveOp</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">isReadOnly</span>: <span class="hljs-literal">true</span>,
+  }
+
+  <span class="hljs-comment">// 遍历 AST 节点</span>
+  <span class="hljs-keyword">function</span> <span class="hljs-title function_">visit</span>(<span class="hljs-params"><span class="hljs-attr">node</span>: <span class="hljs-title class_">Parser</span>.<span class="hljs-title class_">SyntaxNode</span></span>) {
+    <span class="hljs-keyword">switch</span> (node.<span class="hljs-property">type</span>) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;command&#x27;</span>:
+        <span class="hljs-keyword">const</span> cmdName = node.<span class="hljs-property">firstChild</span>?.<span class="hljs-property">text</span> ?? <span class="hljs-string">&#x27;&#x27;</span>
+        analysis.<span class="hljs-property">commands</span>.<span class="hljs-title function_">push</span>(cmdName)
+        <span class="hljs-keyword">if</span> (!<span class="hljs-title function_">isReadOnlyCommand</span>(cmdName)) {
+          analysis.<span class="hljs-property">isReadOnly</span> = <span class="hljs-literal">false</span>
+        }
+        <span class="hljs-keyword">break</span>
+
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;redirected_statement&#x27;</span>:
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;file_redirect&#x27;</span>:
+        analysis.<span class="hljs-property">hasRedirection</span> = <span class="hljs-literal">true</span>
+        analysis.<span class="hljs-property">isReadOnly</span> = <span class="hljs-literal">false</span> <span class="hljs-comment">// 重定向意味着写操作</span>
+        <span class="hljs-keyword">break</span>
+
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;pipeline&#x27;</span>:
+        analysis.<span class="hljs-property">hasPipe</span> = <span class="hljs-literal">true</span>
+        <span class="hljs-keyword">break</span>
+
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&#x27;command_substitution&#x27;</span>:
+        analysis.<span class="hljs-property">hasCommandSubstitution</span> = <span class="hljs-literal">true</span>
+        <span class="hljs-keyword">break</span>
+    }
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> child <span class="hljs-keyword">of</span> node.<span class="hljs-property">children</span>) {
+      <span class="hljs-title function_">visit</span>(child)
+    }
+  }
+
+  <span class="hljs-title function_">visit</span>(tree.<span class="hljs-property">rootNode</span>)
+  <span class="hljs-keyword">return</span> analysis
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">isReadOnlyCommand</span>(<span class="hljs-params"><span class="hljs-attr">cmd</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">boolean</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-variable constant_">BASH_SEARCH_COMMANDS</span>.<span class="hljs-title function_">has</span>(cmd)
+    || <span class="hljs-variable constant_">BASH_READ_COMMANDS</span>.<span class="hljs-title function_">has</span>(cmd)
+    || <span class="hljs-variable constant_">BASH_LIST_COMMANDS</span>.<span class="hljs-title function_">has</span>(cmd)
+    || <span class="hljs-variable constant_">BASH_SILENT_COMMANDS</span>.<span class="hljs-title function_">has</span>(cmd)
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">02</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">FileEditTool 精确替换逻辑</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// tools/FileEditTool.ts — 简化版</span>
+<span class="hljs-keyword">import</span> { z } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;zod&#x27;</span>
+<span class="hljs-keyword">import</span> { readFile, writeFile } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;fs/promises&#x27;</span>
+<span class="hljs-keyword">import</span> { createPatch } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;diff&#x27;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FileEditTool</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Tool</span> {
+  name = <span class="hljs-string">&#x27;Edit&#x27;</span>
+
+  inputSchema = z.<span class="hljs-title function_">object</span>({
+    <span class="hljs-attr">file_path</span>: z.<span class="hljs-title function_">string</span>().<span class="hljs-title function_">describe</span>(<span class="hljs-string">&#x27;要编辑的文件绝对路径&#x27;</span>),
+    <span class="hljs-attr">old_string</span>: z.<span class="hljs-title function_">string</span>().<span class="hljs-title function_">describe</span>(<span class="hljs-string">&#x27;要替换的文本&#x27;</span>),
+    <span class="hljs-attr">new_string</span>: z.<span class="hljs-title function_">string</span>().<span class="hljs-title function_">describe</span>(<span class="hljs-string">&#x27;替换后的新文本&#x27;</span>),
+    <span class="hljs-attr">replace_all</span>: z.<span class="hljs-title function_">boolean</span>().<span class="hljs-title function_">optional</span>().<span class="hljs-title function_">default</span>(<span class="hljs-literal">false</span>)
+      .<span class="hljs-title function_">describe</span>(<span class="hljs-string">&#x27;是否替换所有匹配项&#x27;</span>),
+  })
+
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">call</span>(
+    <span class="hljs-attr">input</span>: z.<span class="hljs-property">infer</span>&lt;<span class="hljs-keyword">typeof</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">inputSchema</span>&gt;,
+    <span class="hljs-attr">context</span>: <span class="hljs-title class_">ToolUseContext</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ToolResult</span>&gt; {
+    <span class="hljs-keyword">const</span> { file_path, old_string, new_string, replace_all } = input
+
+    <span class="hljs-comment">// 读取文件</span>
+    <span class="hljs-keyword">const</span> content = <span class="hljs-keyword">await</span> <span class="hljs-title function_">readFile</span>(file_path, <span class="hljs-string">&#x27;utf-8&#x27;</span>)
+
+    <span class="hljs-comment">// 唯一性检测</span>
+    <span class="hljs-keyword">if</span> (!replace_all) {
+      <span class="hljs-keyword">const</span> matchCount = <span class="hljs-title function_">countOccurrences</span>(content, old_string)
+
+      <span class="hljs-keyword">if</span> (matchCount === <span class="hljs-number">0</span>) {
+        <span class="hljs-keyword">return</span> {
+          <span class="hljs-attr">data</span>: <span class="hljs-string">&#x27;错误: old_string 在文件中未找到。\n&#x27;</span> +
+            <span class="hljs-string">&#x27;请确认要替换的文本与文件内容完全匹配（包括缩进和空白）。&#x27;</span>,
+        }
+      }
+
+      <span class="hljs-keyword">if</span> (matchCount &gt; <span class="hljs-number">1</span>) {
+        <span class="hljs-comment">// 非唯一匹配：提示用户提供更多上下文</span>
+        <span class="hljs-keyword">const</span> locations = <span class="hljs-title function_">findMatchLocations</span>(content, old_string)
+        <span class="hljs-keyword">return</span> {
+          <span class="hljs-attr">data</span>: <span class="hljs-string">&#x27;错误: old_string 在文件中匹配到 &#x27;</span> + matchCount + <span class="hljs-string">&#x27; 处。\n&#x27;</span> +
+            <span class="hljs-string">&#x27;匹配位置: 行 &#x27;</span> + locations.<span class="hljs-title function_">join</span>(<span class="hljs-string">&#x27;, &#x27;</span>) + <span class="hljs-string">&#x27;\n&#x27;</span> +
+            <span class="hljs-string">&#x27;请提供更多上下文使 old_string 唯一，或使用 replace_all=true。&#x27;</span>,
+        }
+      }
+    }
+
+    <span class="hljs-comment">// 执行替换</span>
+    <span class="hljs-keyword">const</span> newContent = replace_all
+      ? content.<span class="hljs-title function_">replaceAll</span>(old_string, new_string)
+      : content.<span class="hljs-title function_">replace</span>(old_string, new_string)
+
+    <span class="hljs-comment">// 计算 diff（用于 UI 展示）</span>
+    <span class="hljs-keyword">const</span> diff = <span class="hljs-title function_">createPatch</span>(file_path, content, newContent)
+
+    <span class="hljs-comment">// 记录文件历史</span>
+    context.<span class="hljs-property">readFileState</span>.<span class="hljs-title function_">recordEdit</span>(file_path, content)
+
+    <span class="hljs-comment">// 写入文件</span>
+    <span class="hljs-keyword">await</span> <span class="hljs-title function_">writeFile</span>(file_path, newContent, <span class="hljs-string">&#x27;utf-8&#x27;</span>)
+
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">data</span>: <span class="hljs-string">&#x27;文件已更新: &#x27;</span> + file_path + <span class="hljs-string">&#x27;\n\n&#x27;</span> + diff,
+    }
+  }
+
+  <span class="hljs-title function_">isReadOnly</span>(<span class="hljs-params"></span>) { <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span> }
+  <span class="hljs-title function_">isConcurrencySafe</span>(<span class="hljs-params"></span>) { <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span> }
+  <span class="hljs-title function_">isDestructive</span>(<span class="hljs-params"></span>) { <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span> }
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">countOccurrences</span>(<span class="hljs-params"><span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">search</span>: <span class="hljs-built_in">string</span></span>): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">let</span> count = <span class="hljs-number">0</span>
+  <span class="hljs-keyword">let</span> pos = <span class="hljs-number">0</span>
+  <span class="hljs-keyword">while</span> ((pos = text.<span class="hljs-title function_">indexOf</span>(search, pos)) !== -<span class="hljs-number">1</span>) {
+    count++
+    pos += search.<span class="hljs-property">length</span>
+  }
+  <span class="hljs-keyword">return</span> count
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">03</span></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">FileReadTool 多格式支持</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// tools/FileReadTool.ts — 简化版</span>
+<span class="hljs-keyword">import</span> { readFile, stat } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;fs/promises&#x27;</span>
+<span class="hljs-keyword">import</span> { extname } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;path&#x27;</span>
+<span class="hljs-keyword">import</span> sharp <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;sharp&#x27;</span>
+
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">IMAGE_EXTENSIONS</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Set</span>([<span class="hljs-string">&#x27;.png&#x27;</span>, <span class="hljs-string">&#x27;.jpg&#x27;</span>, <span class="hljs-string">&#x27;.jpeg&#x27;</span>, <span class="hljs-string">&#x27;.gif&#x27;</span>, <span class="hljs-string">&#x27;.webp&#x27;</span>])
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">MAX_LINES</span> = <span class="hljs-number">2000</span>
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">MAX_IMAGE_DIMENSION</span> = <span class="hljs-number">2048</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FileReadTool</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Tool</span> {
+  name = <span class="hljs-string">&#x27;Read&#x27;</span>
+
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">call</span>(
+    <span class="hljs-attr">input</span>: { <span class="hljs-attr">file_path</span>: <span class="hljs-built_in">string</span>; <span class="hljs-attr">offset</span>?: <span class="hljs-built_in">number</span>; <span class="hljs-attr">limit</span>?: <span class="hljs-built_in">number</span>; <span class="hljs-attr">pages</span>?: <span class="hljs-built_in">string</span> },
+    <span class="hljs-attr">context</span>: <span class="hljs-title class_">ToolUseContext</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ToolResult</span>&gt; {
+    <span class="hljs-keyword">const</span> ext = <span class="hljs-title function_">extname</span>(input.<span class="hljs-property">file_path</span>).<span class="hljs-title function_">toLowerCase</span>()
+
+    <span class="hljs-comment">// 图片处理管线</span>
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable constant_">IMAGE_EXTENSIONS</span>.<span class="hljs-title function_">has</span>(ext)) {
+      <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">readImage</span>(input.<span class="hljs-property">file_path</span>)
+    }
+
+    <span class="hljs-comment">// PDF 处理</span>
+    <span class="hljs-keyword">if</span> (ext === <span class="hljs-string">&#x27;.pdf&#x27;</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">readPDF</span>(input.<span class="hljs-property">file_path</span>, input.<span class="hljs-property">pages</span>)
+    }
+
+    <span class="hljs-comment">// Jupyter Notebook 处理</span>
+    <span class="hljs-keyword">if</span> (ext === <span class="hljs-string">&#x27;.ipynb&#x27;</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">readNotebook</span>(input.<span class="hljs-property">file_path</span>)
+    }
+
+    <span class="hljs-comment">// 文本文件：带行号输出</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">readText</span>(input.<span class="hljs-property">file_path</span>, input.<span class="hljs-property">offset</span>, input.<span class="hljs-property">limit</span>)
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> <span class="hljs-title function_">readText</span>(
+    <span class="hljs-attr">filePath</span>: <span class="hljs-built_in">string</span>,
+    offset = <span class="hljs-number">0</span>,
+    limit = <span class="hljs-variable constant_">MAX_LINES</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ToolResult</span>&gt; {
+    <span class="hljs-keyword">const</span> content = <span class="hljs-keyword">await</span> <span class="hljs-title function_">readFile</span>(filePath, <span class="hljs-string">&#x27;utf-8&#x27;</span>)
+    <span class="hljs-keyword">const</span> lines = content.<span class="hljs-title function_">split</span>(<span class="hljs-string">&#x27;\n&#x27;</span>)
+
+    <span class="hljs-keyword">const</span> selectedLines = lines.<span class="hljs-title function_">slice</span>(offset, offset + limit)
+    <span class="hljs-keyword">const</span> numbered = selectedLines.<span class="hljs-title function_">map</span>(
+      <span class="hljs-function">(<span class="hljs-params">line, i</span>) =&gt;</span> (offset + i + <span class="hljs-number">1</span>).<span class="hljs-title function_">toString</span>().<span class="hljs-title function_">padStart</span>(<span class="hljs-number">6</span>) + <span class="hljs-string">&#x27;\t&#x27;</span> + line
+    )
+
+    <span class="hljs-keyword">let</span> result = numbered.<span class="hljs-title function_">join</span>(<span class="hljs-string">&#x27;\n&#x27;</span>)
+    <span class="hljs-keyword">if</span> (offset + limit &lt; lines.<span class="hljs-property">length</span>) {
+      result += <span class="hljs-string">&#x27;\n\n... (文件共 &#x27;</span> + lines.<span class="hljs-property">length</span> + <span class="hljs-string">&#x27; 行，&#x27;</span> +
+        <span class="hljs-string">&#x27;已显示 &#x27;</span> + (offset + <span class="hljs-number">1</span>) + <span class="hljs-string">&#x27;-&#x27;</span> + (offset + limit) + <span class="hljs-string">&#x27; 行)&#x27;</span>
+    }
+
+    <span class="hljs-keyword">return</span> { <span class="hljs-attr">data</span>: result }
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> <span class="hljs-title function_">readImage</span>(<span class="hljs-attr">filePath</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ToolResult</span>&gt; {
+    <span class="hljs-comment">// 1. 读取元数据</span>
+    <span class="hljs-keyword">const</span> metadata = <span class="hljs-keyword">await</span> <span class="hljs-title function_">sharp</span>(filePath).<span class="hljs-title function_">metadata</span>()
+    <span class="hljs-keyword">const</span> { width = <span class="hljs-number">0</span>, height = <span class="hljs-number">0</span> } = metadata
+
+    <span class="hljs-comment">// 2. Resize 决策</span>
+    <span class="hljs-keyword">let</span> image = <span class="hljs-title function_">sharp</span>(filePath)
+    <span class="hljs-keyword">if</span> (width &gt; <span class="hljs-variable constant_">MAX_IMAGE_DIMENSION</span> || height &gt; <span class="hljs-variable constant_">MAX_IMAGE_DIMENSION</span>) {
+      image = image.<span class="hljs-title function_">resize</span>(<span class="hljs-variable constant_">MAX_IMAGE_DIMENSION</span>, <span class="hljs-variable constant_">MAX_IMAGE_DIMENSION</span>, {
+        <span class="hljs-attr">fit</span>: <span class="hljs-string">&#x27;inside&#x27;</span>,          <span class="hljs-comment">// 保持比例</span>
+        <span class="hljs-attr">withoutEnlargement</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// 不放大</span>
+      })
+    }
+
+    <span class="hljs-comment">// 3. 转为 base64</span>
+    <span class="hljs-keyword">const</span> buffer = <span class="hljs-keyword">await</span> image.<span class="hljs-title function_">toBuffer</span>()
+    <span class="hljs-keyword">const</span> base64 = buffer.<span class="hljs-title function_">toString</span>(<span class="hljs-string">&#x27;base64&#x27;</span>)
+
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">data</span>: base64,
+      <span class="hljs-comment">// 作为 image content block 传给 Claude</span>
+    }
+  }
+
+  <span class="hljs-title function_">isReadOnly</span>(<span class="hljs-params"></span>) { <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span> }
+  <span class="hljs-title function_">isConcurrencySafe</span>(<span class="hljs-params"></span>) { <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span> }
+}</code></pre></div></div></div></div></section><section id="section-interactive" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-purple-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-purple-500" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></div><div><h2 class="section-header-title">互动</h2><p class="section-header-subtitle">步进式流程演示</p></div></div><div class="mb-8"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden"><div class="flex items-center gap-2 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-[var(--color-accent)]" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span class="text-sm font-semibold text-[var(--color-text-secondary)]">互动演示</span></div><div class="p-5"><!--$?--><template id="B:0"></template><div class="flex flex-col gap-3 animate-pulse"><div class="h-4 w-3/4 rounded bg-[var(--color-bg-tertiary)]"></div><div class="h-40 rounded-lg bg-[var(--color-bg-tertiary)]"></div><div class="h-4 w-1/2 rounded bg-[var(--color-bg-tertiary)]"></div></div><!--/$--></div></div></div><div class="prose-custom">
+<h2>内置工具互动解析</h2>
+
+<h3>第 1 步：BashTool 的安全层次</h3>
+<p>BashTool 面临一个核心矛盾：它必须足够强大以执行任意命令，又必须足够安全以防止危险操作。解决方案是多层防御：</p>
+<ol>
+<li><strong>第一层：命令分类</strong> — 已知安全的命令（grep、ls、cat）自动放行</li>
+<li><strong>第二层：AST 分析</strong> — 解析命令结构，识别重定向、管道、子命令中的风险</li>
+<li><strong>第三层：权限检查</strong> — 未知命令交给权限系统（用户确认或分类器判断）</li>
+<li><strong>第四层：沙箱执行</strong> — 高风险命令在隔离环境中执行</li>
+</ol>
+<p>这种"层层筛选"的模式确保了：安全命令快速执行，危险命令被充分审查。</p>
+
+<h3>第 2 步：FileEditTool 为什么坚持"唯一匹配"？</h3>
+<p>想象以下场景：</p>
+<pre>
+// 文件中有 3 处 "const x = 1"
+old_string: "const x = 1"
+new_string: "const x = 2"
+</pre>
+<p>如果直接替换，Claude 可能意外修改了它不打算修改的那一处。唯一匹配要求 Claude 提供足够的上下文：</p>
+<pre>
+// 正确的做法：提供更多上下文使匹配唯一
+old_string: "  // 在 processData 函数中\n  const x = 1"
+new_string: "  // 在 processData 函数中\n  const x = 2"
+</pre>
+<p>这迫使 Claude "知道自己在改哪里"，避免了盲目替换。</p>
+
+<h3>第 3 步：为什么 Glob 和 Grep 不用 Node.js 原生库？</h3>
+<p>ripgrep 的性能优势在大型仓库中尤为明显：</p>
+<ul>
+<li><strong>Node.js glob</strong>：10 万文件搜索耗时 ~5 秒（JS 实现，单线程）</li>
+<li><strong>ripgrep</strong>：10 万文件搜索耗时 ~0.2 秒（Rust 实现，多线程，SIMD 加速）</li>
+<li>在 monorepo（百万+文件）中，差距更加明显</li>
+<li>Claude Code 需要频繁搜索文件，ripgrep 的速度直接影响用户体验</li>
+</ul>
+
+<h3>第 4 步：图片处理为什么要 resize 和降采样？</h3>
+<p>Claude 的多模态能力可以理解图片，但图片大小直接影响 token 成本：</p>
+<ul>
+<li>一张 4096×4096 的 PNG 截图可能有 10MB</li>
+<li>Base64 编码后变为 ~13MB 的文本</li>
+<li>发送给 API 会消耗大量 input tokens</li>
+<li>resize 到 2048×2048 后质量几乎无损，但体积减小 75%</li>
+<li>对于代码截图，这个尺寸完全足够 Claude 阅读</li>
+</ul>
+
+<h3>第 5 步：LSPTool 的价值</h3>
+<p>为什么 Claude Code 需要 LSP 而不是让 Claude 自己通过 Grep 查找定义？</p>
+<ul>
+<li><strong>精确性</strong>：Grep 搜索 <code>function foo</code> 会匹配注释中的"// function foo"。LSP 通过语言服务器理解代码语义，只返回真正的定义</li>
+<li><strong>跨文件</strong>：<code>findReferences</code> 能找到所有导入和使用点，包括间接引用</li>
+<li><strong>类型信息</strong>：<code>hover</code> 能获取推断出的类型，Grep 做不到</li>
+<li><strong>调用层次</strong>：<code>incomingCalls/outgoingCalls</code> 能构建完整的调用图</li>
+</ul>
+
+<h3>关键设计洞察</h3>
+<ul>
+<li><strong>深度 > 广度</strong>：BashTool 用 20+ 文件深度解决一个问题，而不是用一个文件粗略处理</li>
+<li><strong>安全第一</strong>：命令分类 + AST 分析 + 沙箱，三层防御保护用户文件系统</li>
+<li><strong>格式适配</strong>：FileReadTool 不是"读文件"，而是"让 Claude 理解文件内容"</li>
+<li><strong>原生工具</strong>：选择 ripgrep 而非 JS 库，选择 Tree-sitter 而非正则，体现了"用正确的工具做正确的事"</li>
+</ul>
+</div></section><section class="mt-12 mb-10"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 transition-theme"><div class="flex items-center gap-2 mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-[var(--color-text-muted)]" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg><h3 class="text-sm font-semibold text-[var(--color-text-secondary)]">相关源文件</h3></div><div class="flex flex-wrap gap-2"><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">tools/BashTool/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">tools/FileEditTool/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">tools/GrepTool/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">tools/LSPTool/</span></div></div></section><nav class="grid grid-cols-2 gap-4 pt-6 border-t border-[var(--color-border)]"><a class="group flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md" href="/c07"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">上一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">工具执行引擎</div></div></a><a class="group flex items-center justify-end gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md text-right" href="/c09"><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">下一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">计划与工作流</div></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></nav></div><!--$--><!--/$--></div></div></main><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/chunks/webpack-4741459095cd400e.js" id="_R_" async=""></script><div hidden id="S:0"><div class="space-y-6"><div class="py-4 px-4 space-y-2.5"><div class="flex items-center gap-2"><div class="bg-amber-500 text-white text-[10px] font-bold rounded-md px-2 py-1.5 w-16 text-center shadow-sm shrink-0">文件操作</div><div class="flex gap-1 flex-wrap"><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Read</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Write</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Edit</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Glob</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Grep</div></div></div><div class="flex items-center gap-2"><div class="bg-emerald-500 text-white text-[10px] font-bold rounded-md px-2 py-1.5 w-16 text-center shadow-sm shrink-0">执行环境</div><div class="flex gap-1 flex-wrap"><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Bash</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Notebook</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">WebFetch</div></div></div><div class="flex items-center gap-2"><div class="bg-blue-500 text-white text-[10px] font-bold rounded-md px-2 py-1.5 w-16 text-center shadow-sm shrink-0">代码智能</div><div class="flex gap-1 flex-wrap"><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">LSP</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Search</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Symbols</div></div></div><div class="flex items-center gap-2"><div class="bg-purple-500 text-white text-[10px] font-bold rounded-md px-2 py-1.5 w-16 text-center shadow-sm shrink-0">任务管理</div><div class="flex gap-1 flex-wrap"><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Task</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">SubAgent</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Memory</div></div></div><div class="flex items-center gap-2"><div class="bg-red-400 text-white text-[10px] font-bold rounded-md px-2 py-1.5 w-16 text-center shadow-sm shrink-0">MCP 扩展</div><div class="flex gap-1 flex-wrap"><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">McpTool</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Connect</div><div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text)] text-[10px] font-mono rounded px-1.5 py-1">Schema</div></div></div></div><div class="space-y-3"><div class="flex items-center justify-between"><div class="flex items-center gap-1"><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" title="重置"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw h-4 w-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button><button disabled="" class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="上一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back h-4 w-4" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg></button><button class="p-2 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" title="自动播放"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></button><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="下一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward h-4 w-4" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg></button></div><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-accent)] scale-125"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div></div><span class="text-xs font-mono text-[var(--color-text-muted)]">1<!-- --> / <!-- -->5</span></div><div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3"><div class="text-sm font-semibold text-[var(--color-text)]">文件操作类</div><div class="text-sm text-[var(--color-text-secondary)] mt-0.5">Read/Write/Edit/Glob/Grep — 覆盖文件 CRUD 和搜索</div></div></div></div></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
+$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:0","S:0")</script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[9686,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"177\",\"static/chunks/app/layout-b5983c2a6e5f3636.js\"],\"default\"]\n3:I[9766,[],\"\"]\n4:I[8924,[],\"\"]\n5:I[7989,[],\"ClientSegmentRoot\"]\n6:I[1084,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"167\",\"static/chunks/app/(learn)/layout-428c68e7c724cf16.js\"],\"default\"]\n9:I[4431,[],\"OutletBoundary\"]\nb:I[5278,[],\"AsyncMetadataOutlet\"]\nd:I[4431,[],\"ViewportBoundary\"]\nf:I[4431,[],\"MetadataBoundary\"]\n10:\"$Sreact.suspense\"\n12:I[7150,[],\"\"]\n:HL[\"/_next/static/css/ad875cc29e795ab7.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"KKE32b9WFCkqyQ0X62vxy\",\"p\":\"\",\"c\":[\"\",\"c08\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"(learn)\",{\"children\":[[\"chapter\",\"c08\",\"d\"],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/ad875cc29e795ab7.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"icon\",\"href\":\"/favicon.svg\",\"type\":\"image/svg+xml\"}],[\"$\",\"script\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"\\n              (function() {\\n                try {\\n                  var mode = localStorage.getItem('theme');\\n                  if (mode === 'dark' || (!mode \u0026\u0026 window.matchMedia('(prefers-color-scheme: dark)').matches)) {\\n                    document.documentElement.classList.add('dark');\\n                  } else {\\n                    document.documentElement.classList.remove('dark');\\n                  }\\n                } catch(e) {}\\n              })();\\n            \"}}]]}],[\"$\",\"body\",null,{\"className\":\"min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased\",\"children\":[[\"$\",\"$L2\",null,{}],[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8\",\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]]}]]}],{\"children\":[\"(learn)\",[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L5\",null,{\"Component\":\"$6\",\"slots\":{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:style\",\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:1:props:style\",\"children\":404}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:style\",\"children\":[\"$\",\"h2\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:children:props:style\",\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]},\"params\":{},\"promise\":\"$@7\"}]]}],{\"children\":[[\"chapter\",\"c08\",\"d\"],[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[\"$L8\",null,[\"$\",\"$L9\",null,{\"children\":[\"$La\",[\"$\",\"$Lb\",null,{\"promise\":\"$@c\"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$Ld\",null,{\"children\":\"$Le\"}],null],[\"$\",\"$Lf\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$10\",null,{\"fallback\":null,\"children\":\"$L11\"}]}]}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$12\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"7:\"$0:f:0:1:2:children:1:props:children:1:props:params\"\n"])</script><script>self.__next_f.push([1,"13:I[5016,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"620\",\"static/chunks/620-2711a7e455946243.js\",\"6\",\"static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js\"],\"default\"]\n8:[\"$\",\"$L13\",null,{\"chapterId\":\"c08\"}]\n"])</script><script>self.__next_f.push([1,"e:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\na:null\n"])</script><script>self.__next_f.push([1,"c:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"深入 Claude Code 源码\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。\"}],[\"$\",\"meta\",\"2\",{\"name\":\"keywords\",\"content\":\"Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"11:\"$c:metadata\"\n"])</script></body></html>

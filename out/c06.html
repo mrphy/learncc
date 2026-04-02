@@ -1,0 +1,402 @@
+<!DOCTYPE html><!--KKE32b9WFCkqyQ0X62vxy--><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/ad875cc29e795ab7.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-4741459095cd400e.js"/><script src="/_next/static/chunks/4bd1b696-c023c6e3521b1417.js" async=""></script><script src="/_next/static/chunks/255-aaafc19c72668c72.js" async=""></script><script src="/_next/static/chunks/main-app-14368e47824f3575.js" async=""></script><script src="/_next/static/chunks/619-ba102abea3e3d0e4.js" async=""></script><script src="/_next/static/chunks/app/layout-b5983c2a6e5f3636.js" async=""></script><script src="/_next/static/chunks/app/(learn)/layout-428c68e7c724cf16.js" async=""></script><script src="/_next/static/chunks/620-2711a7e455946243.js" async=""></script><script src="/_next/static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js" async=""></script><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>深入 Claude Code 源码</title><meta name="description" content="从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。"/><meta name="keywords" content="Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript"/><script>
+              (function() {
+                try {
+                  var mode = localStorage.getItem('theme');
+                  if (mode === 'dark' || (!mode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            </script><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased"><div hidden=""><!--$--><!--/$--></div><header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-md"><div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"><a class="flex items-center gap-2 font-bold text-lg text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal h-5 w-5 text-[var(--color-accent)]" aria-hidden="true"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg><span>Claude Code 源码解析</span></a><nav class="hidden md:flex items-center gap-1"><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/">首页</a><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01">开始学习</a><div class="mx-2 h-5 w-px bg-[var(--color-border)]"></div><button class="p-2 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" aria-label="切换主题"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></nav><button class="md:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]" aria-label="菜单"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5" aria-hidden="true"><path d="M4 12h16"></path><path d="M4 18h16"></path><path d="M4 6h16"></path></svg></button></div></header><main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex flex-row min-h-[calc(100vh-2rem)] gap-6 py-6"><aside class="hidden md:block w-56 shrink-0"><div class="sticky top-6"><aside class="hidden md:block w-56 shrink-0"><nav class="sticky top-[calc(3.5rem+1px)] max-h-[calc(100vh-3.5rem-1px)] overflow-y-auto py-6 pr-4 space-y-6"><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">启动与基础</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">01</span><span class="truncate">启动引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c02"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">02</span><span class="truncate">配置系统</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">核心引擎</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c03"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">03</span><span class="truncate">查询引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c04"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">04</span><span class="truncate">查询循环</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c05"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">05</span><span class="truncate">API 客户端</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-amber-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">工具系统</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors font-medium text-[var(--color-text)] bg-amber-500/10 dark:bg-amber-500/15" href="/c06"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">06</span><span class="truncate">工具架构</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c07"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">07</span><span class="truncate">工具执行引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c08"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">08</span><span class="truncate">内置工具全景</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c09"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">09</span><span class="truncate">计划与工作流</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">安全与权限</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c10"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">10</span><span class="truncate">权限系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c11"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">11</span><span class="truncate">Hook 生命周期</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">扩展与集成</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c12"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">12</span><span class="truncate">MCP 集成</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c13"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">13</span><span class="truncate">内存与上下文</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c14"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">14</span><span class="truncate">子代理系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c15"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">15</span><span class="truncate">Teams 多代理协作</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c16"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">16</span><span class="truncate">任务与调度</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c17"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">17</span><span class="truncate">Skills 与 Plugins</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-slate-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">界面与状态</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c18"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">18</span><span class="truncate">状态管理</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c19"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">19</span><span class="truncate">终端 UI 框架</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c20"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">20</span><span class="truncate">Bridge 与远程集成</span></a></li></ul></div></nav></aside></div></aside><div class="flex-1 min-w-0"><div class="pb-20"><header class="mb-6"><a class="group mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>返回目录</a><div class="flex items-center gap-3 mb-3"><span class="layer-tools layer-badge">工具系统</span><span class="text-sm font-mono font-semibold text-[var(--color-text-muted)]">第 <!-- -->06<!-- --> 章</span></div><h1 class="text-3xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-4xl">工具架构</h1><p class="mt-2 text-lg text-[var(--color-text-secondary)]">30+ 属性的 Tool 接口</p><div class="relative mt-6 rounded-xl border border-[var(--color-border)] overflow-hidden"><div class="absolute inset-0 opacity-[0.08]" style="background:linear-gradient(135deg, var(--layer-tools), var(--color-accent))"></div><div class="relative px-5 py-4"><div class="flex items-start gap-3"><div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style="background-color:var(--layer-tools-light)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true" style="color:var(--layer-tools)"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-1">核心洞察</div><p class="text-[15px] font-medium leading-relaxed text-[var(--color-text)]">编译期死代码消除(bun:bundle DCE)实现零运行时开销的特性门控</p></div></div></div></div></header><div class="sticky-tabs-bar"><div class="sticky-tabs-inner"><button class="sticky-tab-item sticky-tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>学习</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>架构</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>源码</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>互动</button></div></div><section id="section-learn" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-blue-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4 text-blue-500" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><h2 class="section-header-title">学习</h2><p class="section-header-subtitle">概念讲解与核心设计分析</p></div></div><div class="prose-custom">
+<h2>工具架构概述</h2>
+<blockquote>Claude Code 的核心能力来自于其工具系统。每一个"工具"（Tool）都是一个独立的能力单元——文件读写、代码搜索、Bash 执行、Web 搜索等。工具架构定义了统一的接口约束、注册发现机制、上下文传递模式和特性门控策略，使得 42+ 种工具可以在同一个框架下协同工作。</blockquote>
+
+<h3>Tool&lt;Input, Output, P&gt; 接口：30+ 属性的"超级接口"</h3>
+<p><code>Tool.ts</code> 定义了工具系统最核心的泛型接口 <code>Tool&lt;Input, Output, P&gt;</code>。每个工具实现都必须满足这个接口的约束。三个泛型参数分别是：</p>
+<ul>
+<li><strong>Input</strong> — 工具的输入类型，由 Zod schema 定义（如 BashTool 的 <code>{ command: string, timeout?: number }</code>）</li>
+<li><strong>Output</strong> — 工具的输出类型，通常是 <code>string</code> 或结构化数据</li>
+<li><strong>P</strong> — 权限类型参数，用于类型安全的权限检查</li>
+</ul>
+<p>该接口包含 30+ 个属性和方法，按职责分为以下几组：</p>
+
+<h4>标识与发现</h4>
+<ul>
+<li><code>name</code> — 工具的唯一标识符（如 <code>"Bash"</code>、<code>"Read"</code>）</li>
+<li><code>aliases</code> — 别名列表，用于兼容旧名称</li>
+<li><code>searchHint</code> — 搜索提示词，供 ToolSearchTool 做关键词匹配</li>
+<li><code>userFacingName()</code> — 返回面向用户显示的名称</li>
+</ul>
+
+<h4>Schema 与校验</h4>
+<ul>
+<li><code>inputSchema</code> — Zod schema 定义，用于运行时校验输入</li>
+<li><code>inputJSONSchema</code> — 转换后的 JSON Schema，发送给 API</li>
+<li><code>validateInput()</code> — 自定义输入校验逻辑（超出 schema 的业务规则）</li>
+</ul>
+
+<h4>执行与结果</h4>
+<ul>
+<li><code>call(input, context)</code> — 核心执行方法，接收输入和 ToolUseContext</li>
+<li><code>maxResultSizeChars</code> — 结果最大字符数，超出则持久化到磁盘</li>
+<li><code>mapToolResultToToolResultBlockParam()</code> — 将结果转换为 API 兼容格式</li>
+</ul>
+
+<h4>权限与安全</h4>
+<ul>
+<li><code>checkPermissions()</code> — 检查当前上下文是否有权执行该工具</li>
+<li><code>preparePermissionMatcher()</code> — 准备权限匹配器（如 Bash 的命令分类）</li>
+<li><code>isReadOnly()</code> — 是否为只读工具（读文件、搜索等）</li>
+<li><code>isDestructive()</code> — 是否为破坏性工具（删除文件、强制推送等）</li>
+</ul>
+
+<h4>并发与中断</h4>
+<ul>
+<li><code>isConcurrencySafe()</code> — 是否支持并发执行（如 GlobTool 可以并发，BashTool 不行）</li>
+<li><code>interruptBehavior()</code> — 中断时的行为：<code>'abort'</code>（立即停止）或 <code>'finish'</code>（完成当前操作）</li>
+</ul>
+
+<h4>提示与渲染</h4>
+<ul>
+<li><code>description()</code> — 发送给 Claude 的工具描述（影响模型选择哪个工具）</li>
+<li><code>prompt()</code> — 额外的提示信息，注入到系统提示词中</li>
+<li><code>renderToolUseMessage()</code> — 在 UI 中渲染工具调用的消息</li>
+<li><code>toAutoClassifierInput()</code> — 转换为自动分类器（权限判断）的输入</li>
+</ul>
+
+<h3>ToolUseContext："上帝上下文"</h3>
+<p><code>ToolUseContext</code> 是传递给每个工具的 <code>call()</code> 方法的上下文对象，它携带了工具执行所需的一切信息：</p>
+<ul>
+<li><code>options</code> — 全局选项（工作目录、模型、权限模式等）</li>
+<li><code>abortController</code> — 用于中断当前工具执行的 AbortController</li>
+<li><code>readFileState</code> — 文件读取状态缓存（避免重复读取）</li>
+<li><code>getAppState()/setAppState()</code> — 全局应用状态的读写接口</li>
+<li><code>messages</code> — 当前对话的完整消息历史</li>
+<li><code>agentId</code> — 当前 Agent 的标识符（主 Agent 或子 Agent）</li>
+<li><code>queryTracking</code> — 查询追踪信息（用于遥测）</li>
+<li><code>contentReplacementState</code> — 内容替换状态（用于大结果的磁盘持久化）</li>
+</ul>
+
+<h3>ToolResult&lt;T&gt;：结构化返回值</h3>
+<p>工具的返回值不只是简单的字符串，而是一个结构化的 <code>ToolResult&lt;T&gt;</code>：</p>
+<ul>
+<li><code>data</code> — 实际的输出数据</li>
+<li><code>newMessages</code> — 工具执行过程中生成的新消息（如 AskUserQuestionTool 收到的用户回复）</li>
+<li><code>contextModifier</code> — 上下文修改器（如 SkillTool 加载 skill 后修改系统提示词）</li>
+<li><code>mcpMeta</code> — MCP 元数据（如果是 MCP 工具调用）</li>
+</ul>
+
+<h3>工具注册与发现</h3>
+<p><code>tools.ts</code> 是工具的注册中心，提供三个关键函数：</p>
+<ul>
+<li><code>getAllBaseTools()</code> — 返回所有 42+ 个内置工具实例的数组</li>
+<li><code>getTools()</code> — 在 <code>getAllBaseTools()</code> 基础上，根据 deny 规则和 <code>isEnabled()</code> 过滤不可用的工具</li>
+<li><code>assembleToolPool()</code> — 合并内置工具和 MCP 工具，使用缓存稳定排序确保工具顺序一致</li>
+</ul>
+
+<h3>特性门控与 DCE</h3>
+<p>Claude Code 使用 <code>bun:bundle</code> 的编译时死代码消除（DCE, Dead Code Elimination）实现特性门控：</p>
+<ul>
+<li>不同编译目标（如 OSS vs 内部版本）会定义不同的特性标志</li>
+<li>编译器在打包时将关闭的特性对应的代码完全移除</li>
+<li>这意味着某些工具在特定版本中根本不存在于最终产物中，而不是运行时判断</li>
+</ul>
+
+<h3>循环依赖破解</h3>
+<p>由于工具系统与其他模块（如查询循环、权限系统）存在循环依赖，Claude Code 使用了延迟 <code>require()</code> 模式：</p>
+<ul>
+<li>在文件顶层不导入有循环依赖的模块</li>
+<li>在函数体内使用 <code>require()</code> 延迟加载</li>
+<li>这确保模块初始化顺序正确，避免导入时获得 <code>undefined</code></li>
+</ul>
+</div></section><section id="section-architecture" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-emerald-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4 text-emerald-500" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></div><div><h2 class="section-header-title">架构</h2><p class="section-header-subtitle">模块关系与设计决策</p></div></div><div class="prose-custom">
+<h2>工具架构图</h2>
+
+<h3>核心类型层次</h3>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>类型</th><th>职责</th><th>关键字段/方法</th></tr></thead>
+<tbody>
+<tr><td>Tool&lt;I,O,P&gt;</td><td>工具接口（30+ 属性）</td><td>name, call(), checkPermissions(), inputSchema</td></tr>
+<tr><td>ToolUseContext</td><td>执行上下文（"上帝对象"）</td><td>options, abortController, messages, readFileState</td></tr>
+<tr><td>ToolPermissionContext</td><td>权限上下文</td><td>mode, alwaysAllowRules, alwaysDenyRules</td></tr>
+<tr><td>ToolResult&lt;T&gt;</td><td>结构化返回值</td><td>data, newMessages, contextModifier, mcpMeta</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>工具发现流程</h3>
+<ol>
+<li><strong>getAllBaseTools()</strong> — 实例化 42+ 个内置工具</li>
+<li><strong>getTools(deny)</strong> — 过滤被禁用的工具（deny rules + isEnabled()）</li>
+<li><strong>assembleToolPool(built-in, MCP)</strong> — 合并内置 + MCP 工具，缓存稳定排序</li>
+<li><strong>发送给 API</strong> — 将工具池序列化为 JSON Schema 格式的工具定义</li>
+</ol>
+
+<h3>Tool 接口属性分组</h3>
+<ul>
+<li><strong>标识组 (4)</strong>：name, aliases, searchHint, userFacingName()</li>
+<li><strong>Schema 组 (3)</strong>：inputSchema, inputJSONSchema, validateInput()</li>
+<li><strong>执行组 (3)</strong>：call(), maxResultSizeChars, mapToolResultToToolResultBlockParam()</li>
+<li><strong>权限组 (4)</strong>：checkPermissions(), preparePermissionMatcher(), isReadOnly(), isDestructive()</li>
+<li><strong>并发组 (2)</strong>：isConcurrencySafe(), interruptBehavior()</li>
+<li><strong>提示组 (4)</strong>：description(), prompt(), renderToolUseMessage(), toAutoClassifierInput()</li>
+<li><strong>门控组 (1)</strong>：isEnabled()</li>
+</ul>
+
+<h3>特性门控机制</h3>
+<p>编译时 DCE（Dead Code Elimination）流程：</p>
+<ol>
+<li>定义特性标志常量（如 <code>FEATURE_MCP = true</code>）</li>
+<li>代码中使用 <code>if (FEATURE_MCP) { ... }</code> 条件分支</li>
+<li>Bun bundler 在编译时求值常量条件</li>
+<li>不可达分支被完全移除，最终产物中不包含相关代码</li>
+</ol>
+
+<h3>设计决策</h3>
+<blockquote>
+<p><strong>为什么 ToolUseContext 是"上帝对象"？</strong></p>
+<p>在工具系统中，每个工具可能需要访问截然不同的上下文信息。BashTool 需要 abortController 来中断进程，FileReadTool 需要 readFileState 做缓存，SkillTool 需要 messages 来理解对话历史。与其让每个工具单独获取这些依赖，不如把所有可能需要的上下文打包成一个对象传入。这虽然违反了"最小知识原则"，但在实践中大幅简化了工具的编写和注册流程。</p>
+</blockquote>
+</div></section><section id="section-source" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-amber-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-amber-500" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg></div><div><h2 class="section-header-title">源码</h2><p class="section-header-subtitle">共 <!-- -->3<!-- --> 个关键代码示例</p></div></div><div class="space-y-8"><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">01</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">Tool&lt;I,O,P&gt; 核心接口定义</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// Tool.ts — 简化版核心接口</span>
+<span class="hljs-keyword">import</span> { z } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;zod&#x27;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Tool</span>&lt;
+  <span class="hljs-title class_">Input</span> = <span class="hljs-built_in">unknown</span>,
+  <span class="hljs-title class_">Output</span> = <span class="hljs-built_in">unknown</span>,
+  P = <span class="hljs-built_in">unknown</span>
+&gt; {
+  <span class="hljs-comment">// === 标识与发现 ===</span>
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>
+  <span class="hljs-attr">aliases</span>?: <span class="hljs-built_in">string</span>[]
+  <span class="hljs-attr">searchHint</span>?: <span class="hljs-built_in">string</span>
+  <span class="hljs-title function_">userFacingName</span>(): <span class="hljs-built_in">string</span>
+
+  <span class="hljs-comment">// === Schema ===</span>
+  <span class="hljs-attr">inputSchema</span>: z.<span class="hljs-property">ZodType</span>&lt;<span class="hljs-title class_">Input</span>&gt;
+  <span class="hljs-attr">inputJSONSchema</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;
+  validateInput?(<span class="hljs-attr">input</span>: <span class="hljs-title class_">Input</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>&gt;
+
+  <span class="hljs-comment">// === 执行 ===</span>
+  <span class="hljs-title function_">call</span>(<span class="hljs-attr">input</span>: <span class="hljs-title class_">Input</span>, <span class="hljs-attr">context</span>: <span class="hljs-title class_">ToolUseContext</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ToolResult</span>&lt;<span class="hljs-title class_">Output</span>&gt;&gt;
+  <span class="hljs-attr">maxResultSizeChars</span>?: <span class="hljs-built_in">number</span>
+
+  <span class="hljs-comment">// === 权限 ===</span>
+  <span class="hljs-title function_">checkPermissions</span>(
+    <span class="hljs-attr">input</span>: <span class="hljs-title class_">Input</span>,
+    <span class="hljs-attr">context</span>: <span class="hljs-title class_">ToolPermissionContext</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">PermissionCheckResult</span>&gt;
+  <span class="hljs-title function_">isReadOnly</span>(): <span class="hljs-built_in">boolean</span>
+  <span class="hljs-title function_">isDestructive</span>(): <span class="hljs-built_in">boolean</span>
+
+  <span class="hljs-comment">// === 并发与中断 ===</span>
+  <span class="hljs-title function_">isConcurrencySafe</span>(): <span class="hljs-built_in">boolean</span>
+  <span class="hljs-title function_">interruptBehavior</span>(): <span class="hljs-string">&#x27;abort&#x27;</span> | <span class="hljs-string">&#x27;finish&#x27;</span>
+
+  <span class="hljs-comment">// === 提示与渲染 ===</span>
+  <span class="hljs-title function_">description</span>(): <span class="hljs-built_in">string</span>
+  prompt?(): <span class="hljs-built_in">string</span>
+  isEnabled?(): <span class="hljs-built_in">boolean</span>
+  renderToolUseMessage?(<span class="hljs-attr">input</span>: <span class="hljs-title class_">Input</span>): <span class="hljs-title class_">ToolUseMessage</span>
+}
+
+<span class="hljs-comment">// ToolUseContext — 工具执行的&quot;上帝上下文&quot;</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ToolUseContext</span> {
+  <span class="hljs-attr">options</span>: <span class="hljs-title class_">GlobalOptions</span>
+  <span class="hljs-attr">abortController</span>: <span class="hljs-title class_">AbortController</span>
+  <span class="hljs-attr">readFileState</span>: <span class="hljs-title class_">ReadFileState</span>
+  <span class="hljs-attr">getAppState</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-title class_">AppState</span>
+  <span class="hljs-attr">setAppState</span>: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">updater</span>: (state: AppState) =&gt; <span class="hljs-title class_">AppState</span></span>) =&gt;</span> <span class="hljs-built_in">void</span>
+  <span class="hljs-attr">messages</span>: <span class="hljs-title class_">Message</span>[]
+  <span class="hljs-attr">agentId</span>: <span class="hljs-built_in">string</span>
+  <span class="hljs-attr">queryTracking</span>: <span class="hljs-title class_">QueryTracking</span>
+  <span class="hljs-attr">contentReplacementState</span>: <span class="hljs-title class_">ContentReplacementState</span>
+}
+
+<span class="hljs-comment">// ToolResult&lt;T&gt; — 结构化返回值</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ToolResult</span>&lt;T = <span class="hljs-built_in">string</span>&gt; {
+  <span class="hljs-attr">data</span>: T
+  <span class="hljs-attr">newMessages</span>?: <span class="hljs-title class_">Message</span>[]
+  <span class="hljs-attr">contextModifier</span>?: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">context</span>: <span class="hljs-title class_">SystemPromptContext</span></span>) =&gt;</span> <span class="hljs-title class_">SystemPromptContext</span>
+  <span class="hljs-attr">mcpMeta</span>?: <span class="hljs-title class_">McpMeta</span>
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">02</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">工具注册与发现机制</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// tools.ts — 工具注册中心（简化版）</span>
+
+<span class="hljs-comment">// 1. 获取所有内置工具</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">getAllBaseTools</span>(<span class="hljs-params"></span>): <span class="hljs-title class_">Tool</span>[] {
+  <span class="hljs-keyword">return</span> [
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">BashTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileReadTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileEditTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileWriteTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">GlobTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">GrepTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">LSPTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">WebFetchTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">WebSearchTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">NotebookEditTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">SkillTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">AskUserQuestionTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">ToolSearchTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">TodoWriteTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">EnterPlanModeTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">ExitPlanModeV2Tool</span>(),
+    <span class="hljs-comment">// ... 42+ 工具实例</span>
+  ]
+}
+
+<span class="hljs-comment">// 2. 按规则过滤不可用的工具</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">getTools</span>(<span class="hljs-params">
+  <span class="hljs-attr">denyRules</span>: <span class="hljs-title class_">DenyRule</span>[] = []
+</span>): <span class="hljs-title class_">Tool</span>[] {
+  <span class="hljs-keyword">return</span> <span class="hljs-title function_">getAllBaseTools</span>().<span class="hljs-title function_">filter</span>(<span class="hljs-function"><span class="hljs-params">tool</span> =&gt;</span> {
+    <span class="hljs-comment">// 特性门控：编译时 DCE 可能已移除某些工具</span>
+    <span class="hljs-keyword">if</span> (tool.<span class="hljs-property">isEnabled</span> &amp;&amp; !tool.<span class="hljs-title function_">isEnabled</span>()) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+
+    <span class="hljs-comment">// 运行时禁用规则</span>
+    <span class="hljs-keyword">if</span> (denyRules.<span class="hljs-title function_">some</span>(<span class="hljs-function"><span class="hljs-params">rule</span> =&gt;</span> <span class="hljs-title function_">matchTool</span>(rule, tool.<span class="hljs-property">name</span>))) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+    }
+
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+  })
+}
+
+<span class="hljs-comment">// 3. 合并内置 + MCP 工具</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">assembleToolPool</span>(<span class="hljs-params">
+  <span class="hljs-attr">builtInTools</span>: <span class="hljs-title class_">Tool</span>[],
+  <span class="hljs-attr">mcpTools</span>: <span class="hljs-title class_">Tool</span>[]
+</span>): <span class="hljs-title class_">Tool</span>[] {
+  <span class="hljs-keyword">const</span> allTools = [...builtInTools, ...mcpTools]
+
+  <span class="hljs-comment">// 缓存稳定排序：确保相同的工具集合</span>
+  <span class="hljs-comment">// 总是产生相同的排序顺序</span>
+  <span class="hljs-comment">// 这对 API 缓存命中很重要</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-title function_">stableSortTools</span>(allTools)
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">stableSortTools</span>(<span class="hljs-params"><span class="hljs-attr">tools</span>: <span class="hljs-title class_">Tool</span>[]</span>): <span class="hljs-title class_">Tool</span>[] {
+  <span class="hljs-comment">// 内置工具保持注册顺序</span>
+  <span class="hljs-comment">// MCP 工具按名称字母序排列</span>
+  <span class="hljs-comment">// 合并时内置工具在前，MCP 在后</span>
+  <span class="hljs-keyword">const</span> builtIn = tools.<span class="hljs-title function_">filter</span>(<span class="hljs-function"><span class="hljs-params">t</span> =&gt;</span> !t.<span class="hljs-property">isMcpTool</span>)
+  <span class="hljs-keyword">const</span> mcp = tools
+    .<span class="hljs-title function_">filter</span>(<span class="hljs-function"><span class="hljs-params">t</span> =&gt;</span> t.<span class="hljs-property">isMcpTool</span>)
+    .<span class="hljs-title function_">sort</span>(<span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> a.<span class="hljs-property">name</span>.<span class="hljs-title function_">localeCompare</span>(b.<span class="hljs-property">name</span>))
+  <span class="hljs-keyword">return</span> [...builtIn, ...mcp]
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">03</span></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">特性门控与循环依赖破解</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// === 特性门控：编译时 DCE ===</span>
+
+<span class="hljs-comment">// features.ts — 特性标志（编译时常量）</span>
+<span class="hljs-comment">// Bun bundler 会在编译时将这些替换为字面量</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">FEATURE_MCP</span> = <span class="hljs-literal">true</span>        <span class="hljs-comment">// MCP 工具支持</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">FEATURE_POWER_SHELL</span> = <span class="hljs-literal">false</span> <span class="hljs-comment">// PowerShell (仅 Windows)</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-variable constant_">FEATURE_WORKTREE</span> = <span class="hljs-literal">true</span>    <span class="hljs-comment">// Git worktree 支持</span>
+
+<span class="hljs-comment">// 在工具注册中使用</span>
+<span class="hljs-keyword">import</span> { <span class="hljs-variable constant_">FEATURE_MCP</span>, <span class="hljs-variable constant_">FEATURE_POWER_SHELL</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./features&#x27;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">getAllBaseTools</span>(<span class="hljs-params"></span>): <span class="hljs-title class_">Tool</span>[] {
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">tools</span>: <span class="hljs-title class_">Tool</span>[] = [
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">BashTool</span>(),
+    <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileReadTool</span>(),
+    <span class="hljs-comment">// ... 核心工具</span>
+  ]
+
+  <span class="hljs-comment">// 编译时 DCE：如果 FEATURE_POWER_SHELL = false,</span>
+  <span class="hljs-comment">// 整个分支（包括 PowerShellTool 的 import）被移除</span>
+  <span class="hljs-keyword">if</span> (<span class="hljs-variable constant_">FEATURE_POWER_SHELL</span>) {
+    tools.<span class="hljs-title function_">push</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">PowerShellTool</span>())
+  }
+
+  <span class="hljs-comment">// 编译时 DCE：MCP 相关代码仅在启用时保留</span>
+  <span class="hljs-keyword">if</span> (<span class="hljs-variable constant_">FEATURE_MCP</span>) {
+    <span class="hljs-comment">// MCP 工具在 assembleToolPool 中动态添加</span>
+  }
+
+  <span class="hljs-keyword">return</span> tools
+}
+
+<span class="hljs-comment">// === 循环依赖破解：延迟 require() ===</span>
+
+<span class="hljs-comment">// 问题：Tool → QueryLoop → Tool（循环）</span>
+<span class="hljs-comment">// 解决方案：在函数体内延迟加载</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SkillTool</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Tool</span> {
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">call</span>(<span class="hljs-params"><span class="hljs-attr">input</span>: <span class="hljs-title class_">SkillInput</span>, <span class="hljs-attr">context</span>: <span class="hljs-title class_">ToolUseContext</span></span>) {
+    <span class="hljs-comment">// 延迟 require，避免循环依赖</span>
+    <span class="hljs-comment">// 如果在文件顶层 import，模块初始化时</span>
+    <span class="hljs-comment">// QueryLoop 可能还未完成导出</span>
+    <span class="hljs-keyword">const</span> { runSubConversation } = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;../queryLoop&#x27;</span>)
+
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">runSubConversation</span>({
+      <span class="hljs-attr">skill</span>: input.<span class="hljs-property">skill</span>,
+      <span class="hljs-attr">messages</span>: context.<span class="hljs-property">messages</span>,
+      <span class="hljs-comment">// ...</span>
+    })
+  }
+}
+
+<span class="hljs-comment">// 另一个常见模式：类型导入不会引起循环依赖</span>
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> { <span class="hljs-title class_">QueryLoop</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;../queryLoop&#x27;</span> <span class="hljs-comment">// OK: 仅类型</span>
+<span class="hljs-comment">// import { QueryLoop } from &#x27;../queryLoop&#x27; // 危险: 运行时导入</span></code></pre></div></div></div></div></section><section id="section-interactive" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-purple-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-purple-500" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></div><div><h2 class="section-header-title">互动</h2><p class="section-header-subtitle">步进式流程演示</p></div></div><div class="mb-8"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden"><div class="flex items-center gap-2 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-[var(--color-accent)]" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span class="text-sm font-semibold text-[var(--color-text-secondary)]">互动演示</span></div><div class="p-5"><!--$?--><template id="B:0"></template><div class="flex flex-col gap-3 animate-pulse"><div class="h-4 w-3/4 rounded bg-[var(--color-bg-tertiary)]"></div><div class="h-40 rounded-lg bg-[var(--color-bg-tertiary)]"></div><div class="h-4 w-1/2 rounded bg-[var(--color-bg-tertiary)]"></div></div><!--/$--></div></div></div><div class="prose-custom">
+<h2>工具架构互动解析</h2>
+
+<h3>第 1 步：理解 30+ 属性接口的设计意图</h3>
+<p>为什么一个工具接口需要 30+ 个属性？让我们从一个工具的"生命周期"来理解：</p>
+<ol>
+<li><strong>发现阶段</strong> — Claude 需要知道有哪些工具可用（name, description, searchHint）</li>
+<li><strong>选择阶段</strong> — Claude 决定使用哪个工具（inputJSONSchema 告诉 Claude 参数格式）</li>
+<li><strong>权限阶段</strong> — 系统检查是否允许执行（checkPermissions, isReadOnly, isDestructive）</li>
+<li><strong>执行阶段</strong> — 实际运行工具逻辑（call, validateInput, maxResultSizeChars）</li>
+<li><strong>渲染阶段</strong> — 在 UI 中展示结果（renderToolUseMessage, userFacingName）</li>
+<li><strong>编排阶段</strong> — 多工具并发调度（isConcurrencySafe, interruptBehavior）</li>
+</ol>
+<p>每个阶段都需要工具提供不同的信息，这就是为什么接口如此"丰富"。</p>
+
+<h3>第 2 步：ToolUseContext 的"上帝对象"模式</h3>
+<p>ToolUseContext 包含了工具可能需要的所有上下文。这是一种务实的设计选择：</p>
+<ul>
+<li><strong>优点</strong>：新增工具时不需要修改调用方代码，只需要从 context 中取需要的数据</li>
+<li><strong>优点</strong>：工具签名统一，所有工具的 call 方法参数一致</li>
+<li><strong>缺点</strong>：工具可以访问它不需要的数据（如 BashTool 可以访问 readFileState）</li>
+<li><strong>权衡</strong>：在 42+ 工具的规模下，统一接口的生产力收益远大于松耦合的理论优势</li>
+</ul>
+
+<h3>第 3 步：assembleToolPool 的缓存稳定排序</h3>
+<p>为什么工具排序需要"缓存稳定"？这与 Anthropic API 的提示缓存有关：</p>
+<ul>
+<li>API 请求中的 <code>tools</code> 数组是请求的一部分</li>
+<li>如果工具顺序变化，整个请求的哈希变化，缓存失效</li>
+<li>通过保证相同工具集合始终以相同顺序排列，缓存命中率大幅提高</li>
+<li>这是一个典型的"看不见的优化"——用户无感知但节省大量 token 成本</li>
+</ul>
+
+<h3>第 4 步：编译时 DCE vs 运行时判断</h3>
+<p>传统做法是运行时 <code>if (config.enableFeature)</code>，但 Claude Code 选择了编译时 DCE：</p>
+<ul>
+<li><strong>运行时判断</strong>：代码仍在最终产物中，只是不执行。增加包大小和攻击面</li>
+<li><strong>编译时 DCE</strong>：代码从最终产物中完全移除。包更小，不可能意外启用</li>
+<li><strong>代价</strong>：需要为不同特性集合构建不同的二进制文件</li>
+<li><strong>适用场景</strong>：OSS 版本 vs 内部版本等需要完全隔离的场景</li>
+</ul>
+
+<h3>第 5 步：循环依赖是如何产生的？</h3>
+<p>工具系统中循环依赖的典型案例：</p>
+<ol>
+<li>SkillTool 需要调用 QueryLoop 来运行子对话</li>
+<li>QueryLoop 需要 getTools() 来获取工具列表</li>
+<li>getTools() 实例化所有工具，包括 SkillTool</li>
+<li>形成闭环：SkillTool → QueryLoop → getTools() → SkillTool</li>
+</ol>
+<p>延迟 <code>require()</code> 打破了这个闭环：SkillTool 在定义时不导入 QueryLoop，只在 <code>call()</code> 被实际调用时才加载。此时所有模块都已完成初始化，不会得到 undefined。</p>
+
+<h3>关键设计洞察</h3>
+<ul>
+<li><strong>接口驱动</strong>：30+ 属性的接口看似笨重，但确保了工具系统的统一性和可预测性</li>
+<li><strong>务实 > 纯洁</strong>：ToolUseContext 的"上帝对象"模式牺牲了耦合度，换取了开发效率</li>
+<li><strong>缓存意识</strong>：工具排序的稳定性直接影响 API token 成本</li>
+<li><strong>编译时安全</strong>：DCE 确保不同版本之间的特性隔离在物理层面不可逆</li>
+</ul>
+</div></section><section class="mt-12 mb-10"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 transition-theme"><div class="flex items-center gap-2 mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-[var(--color-text-muted)]" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg><h3 class="text-sm font-semibold text-[var(--color-text-secondary)]">相关源文件</h3></div><div class="flex flex-wrap gap-2"><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">Tool.ts</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">tools.ts</span></div></div></section><nav class="grid grid-cols-2 gap-4 pt-6 border-t border-[var(--color-border)]"><a class="group flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md" href="/c05"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">上一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">API 客户端</div></div></a><a class="group flex items-center justify-end gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md text-right" href="/c07"><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">下一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">工具执行引擎</div></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></nav></div><!--$--><!--/$--></div></div></main><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/chunks/webpack-4741459095cd400e.js" id="_R_" async=""></script><div hidden id="S:0"><div class="space-y-6"><div class="py-6 px-4"><div class="border-2 border-amber-500/30 rounded-xl p-4 bg-amber-500/5"><div class="text-xs font-bold text-amber-500 mb-3">interface Tool</div><div class="space-y-1.5"><div class="bg-amber-500 text-white rounded-md px-3 py-1.5 text-xs font-semibold flex justify-between items-center shadow-sm" style="opacity:0;height:0px;transform:translateX(-20px)"><span class="font-mono">name</span><span class="opacity-60 text-[10px]">工具名称</span></div><div class="bg-amber-400 text-white rounded-md px-3 py-1.5 text-xs font-semibold flex justify-between items-center shadow-sm" style="opacity:0;height:0px;transform:translateX(-20px)"><span class="font-mono">description</span><span class="opacity-60 text-[10px]">AI 可读描述</span></div><div class="bg-amber-500 text-white rounded-md px-3 py-1.5 text-xs font-semibold flex justify-between items-center shadow-sm" style="opacity:0;height:0px;transform:translateX(-20px)"><span class="font-mono">inputSchema</span><span class="opacity-60 text-[10px]">JSON Schema 参数</span></div><div class="bg-emerald-500 text-white rounded-md px-3 py-1.5 text-xs font-semibold flex justify-between items-center shadow-sm" style="opacity:0;height:0px;transform:translateX(-20px)"><span class="font-mono">isReadOnly()</span><span class="opacity-60 text-[10px]">是否只读操作</span></div><div class="bg-emerald-400 text-white rounded-md px-3 py-1.5 text-xs font-semibold flex justify-between items-center shadow-sm" style="opacity:0;height:0px;transform:translateX(-20px)"><span class="font-mono">call()</span><span class="opacity-60 text-[10px]">执行入口函数</span></div><div class="bg-purple-500 text-white rounded-md px-3 py-1.5 text-xs font-semibold flex justify-between items-center shadow-sm" style="opacity:0;height:0px;transform:translateX(-20px)"><span class="font-mono">needsPermission()</span><span class="opacity-60 text-[10px]">权限检查逻辑</span></div><div class="bg-purple-400 text-white rounded-md px-3 py-1.5 text-xs font-semibold flex justify-between items-center shadow-sm" style="opacity:0;height:0px;transform:translateX(-20px)"><span class="font-mono">isEnabled()</span><span class="opacity-60 text-[10px]">是否启用判断</span></div></div></div></div><div class="space-y-3"><div class="flex items-center justify-between"><div class="flex items-center gap-1"><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" title="重置"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw h-4 w-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button><button disabled="" class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="上一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back h-4 w-4" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg></button><button class="p-2 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" title="自动播放"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></button><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="下一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward h-4 w-4" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg></button></div><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-accent)] scale-125"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div></div><span class="text-xs font-mono text-[var(--color-text-muted)]">1<!-- --> / <!-- -->5</span></div><div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3"><div class="text-sm font-semibold text-[var(--color-text)]">Tool 接口定义</div><div class="text-sm text-[var(--color-text-secondary)] mt-0.5">TypeScript 接口规范, 每个工具必须实现的契约</div></div></div></div></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
+$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:0","S:0")</script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[9686,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"177\",\"static/chunks/app/layout-b5983c2a6e5f3636.js\"],\"default\"]\n3:I[9766,[],\"\"]\n4:I[8924,[],\"\"]\n5:I[7989,[],\"ClientSegmentRoot\"]\n6:I[1084,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"167\",\"static/chunks/app/(learn)/layout-428c68e7c724cf16.js\"],\"default\"]\n9:I[4431,[],\"OutletBoundary\"]\nb:I[5278,[],\"AsyncMetadataOutlet\"]\nd:I[4431,[],\"ViewportBoundary\"]\nf:I[4431,[],\"MetadataBoundary\"]\n10:\"$Sreact.suspense\"\n12:I[7150,[],\"\"]\n:HL[\"/_next/static/css/ad875cc29e795ab7.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"KKE32b9WFCkqyQ0X62vxy\",\"p\":\"\",\"c\":[\"\",\"c06\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"(learn)\",{\"children\":[[\"chapter\",\"c06\",\"d\"],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/ad875cc29e795ab7.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"icon\",\"href\":\"/favicon.svg\",\"type\":\"image/svg+xml\"}],[\"$\",\"script\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"\\n              (function() {\\n                try {\\n                  var mode = localStorage.getItem('theme');\\n                  if (mode === 'dark' || (!mode \u0026\u0026 window.matchMedia('(prefers-color-scheme: dark)').matches)) {\\n                    document.documentElement.classList.add('dark');\\n                  } else {\\n                    document.documentElement.classList.remove('dark');\\n                  }\\n                } catch(e) {}\\n              })();\\n            \"}}]]}],[\"$\",\"body\",null,{\"className\":\"min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased\",\"children\":[[\"$\",\"$L2\",null,{}],[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8\",\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]]}]]}],{\"children\":[\"(learn)\",[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L5\",null,{\"Component\":\"$6\",\"slots\":{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:style\",\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:1:props:style\",\"children\":404}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:style\",\"children\":[\"$\",\"h2\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:children:props:style\",\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]},\"params\":{},\"promise\":\"$@7\"}]]}],{\"children\":[[\"chapter\",\"c06\",\"d\"],[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[\"$L8\",null,[\"$\",\"$L9\",null,{\"children\":[\"$La\",[\"$\",\"$Lb\",null,{\"promise\":\"$@c\"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$Ld\",null,{\"children\":\"$Le\"}],null],[\"$\",\"$Lf\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$10\",null,{\"fallback\":null,\"children\":\"$L11\"}]}]}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$12\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"7:\"$0:f:0:1:2:children:1:props:children:1:props:params\"\n"])</script><script>self.__next_f.push([1,"13:I[5016,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"620\",\"static/chunks/620-2711a7e455946243.js\",\"6\",\"static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js\"],\"default\"]\n8:[\"$\",\"$L13\",null,{\"chapterId\":\"c06\"}]\n"])</script><script>self.__next_f.push([1,"e:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\na:null\n"])</script><script>self.__next_f.push([1,"c:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"深入 Claude Code 源码\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。\"}],[\"$\",\"meta\",\"2\",{\"name\":\"keywords\",\"content\":\"Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"11:\"$c:metadata\"\n"])</script></body></html>

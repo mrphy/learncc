@@ -1,0 +1,546 @@
+<!DOCTYPE html><!--KKE32b9WFCkqyQ0X62vxy--><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/ad875cc29e795ab7.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-4741459095cd400e.js"/><script src="/_next/static/chunks/4bd1b696-c023c6e3521b1417.js" async=""></script><script src="/_next/static/chunks/255-aaafc19c72668c72.js" async=""></script><script src="/_next/static/chunks/main-app-14368e47824f3575.js" async=""></script><script src="/_next/static/chunks/619-ba102abea3e3d0e4.js" async=""></script><script src="/_next/static/chunks/app/layout-b5983c2a6e5f3636.js" async=""></script><script src="/_next/static/chunks/app/(learn)/layout-428c68e7c724cf16.js" async=""></script><script src="/_next/static/chunks/620-2711a7e455946243.js" async=""></script><script src="/_next/static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js" async=""></script><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>深入 Claude Code 源码</title><meta name="description" content="从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。"/><meta name="keywords" content="Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript"/><script>
+              (function() {
+                try {
+                  var mode = localStorage.getItem('theme');
+                  if (mode === 'dark' || (!mode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            </script><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased"><div hidden=""><!--$--><!--/$--></div><header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-md"><div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"><a class="flex items-center gap-2 font-bold text-lg text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal h-5 w-5 text-[var(--color-accent)]" aria-hidden="true"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg><span>Claude Code 源码解析</span></a><nav class="hidden md:flex items-center gap-1"><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/">首页</a><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01">开始学习</a><div class="mx-2 h-5 w-px bg-[var(--color-border)]"></div><button class="p-2 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" aria-label="切换主题"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></nav><button class="md:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]" aria-label="菜单"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5" aria-hidden="true"><path d="M4 12h16"></path><path d="M4 18h16"></path><path d="M4 6h16"></path></svg></button></div></header><main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex flex-row min-h-[calc(100vh-2rem)] gap-6 py-6"><aside class="hidden md:block w-56 shrink-0"><div class="sticky top-6"><aside class="hidden md:block w-56 shrink-0"><nav class="sticky top-[calc(3.5rem+1px)] max-h-[calc(100vh-3.5rem-1px)] overflow-y-auto py-6 pr-4 space-y-6"><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">启动与基础</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">01</span><span class="truncate">启动引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c02"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">02</span><span class="truncate">配置系统</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">核心引擎</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c03"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">03</span><span class="truncate">查询引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c04"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">04</span><span class="truncate">查询循环</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c05"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">05</span><span class="truncate">API 客户端</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-amber-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">工具系统</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c06"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">06</span><span class="truncate">工具架构</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c07"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">07</span><span class="truncate">工具执行引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c08"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">08</span><span class="truncate">内置工具全景</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c09"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">09</span><span class="truncate">计划与工作流</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">安全与权限</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c10"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">10</span><span class="truncate">权限系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c11"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">11</span><span class="truncate">Hook 生命周期</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">扩展与集成</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c12"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">12</span><span class="truncate">MCP 集成</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c13"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">13</span><span class="truncate">内存与上下文</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c14"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">14</span><span class="truncate">子代理系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c15"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">15</span><span class="truncate">Teams 多代理协作</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c16"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">16</span><span class="truncate">任务与调度</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c17"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">17</span><span class="truncate">Skills 与 Plugins</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-slate-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">界面与状态</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c18"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">18</span><span class="truncate">状态管理</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c19"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">19</span><span class="truncate">终端 UI 框架</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors font-medium text-[var(--color-text)] bg-slate-500/10 dark:bg-slate-500/15" href="/c20"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">20</span><span class="truncate">Bridge 与远程集成</span></a></li></ul></div></nav></aside></div></aside><div class="flex-1 min-w-0"><div class="pb-20"><header class="mb-6"><a class="group mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>返回目录</a><div class="flex items-center gap-3 mb-3"><span class="layer-ui-state layer-badge">界面与状态</span><span class="text-sm font-mono font-semibold text-[var(--color-text-muted)]">第 <!-- -->20<!-- --> 章</span></div><h1 class="text-3xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-4xl">Bridge 与远程集成</h1><p class="mt-2 text-lg text-[var(--color-text-secondary)]">IDE 双向通信与远程控制</p><div class="relative mt-6 rounded-xl border border-[var(--color-border)] overflow-hidden"><div class="absolute inset-0 opacity-[0.08]" style="background:linear-gradient(135deg, var(--layer-ui-state), var(--color-accent))"></div><div class="relative px-5 py-4"><div class="flex items-start gap-3"><div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style="background-color:var(--layer-ui-state-light)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true" style="color:var(--layer-ui-state)"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-1">核心洞察</div><p class="text-[15px] font-medium leading-relaxed text-[var(--color-text)]">Bridge 将 Claude Code 从独立 CLI 升级为 IDE 的智能内核</p></div></div></div></div></header><div class="sticky-tabs-bar"><div class="sticky-tabs-inner"><button class="sticky-tab-item sticky-tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>学习</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>架构</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>源码</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>互动</button></div></div><section id="section-learn" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-blue-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4 text-blue-500" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><h2 class="section-header-title">学习</h2><p class="section-header-subtitle">概念讲解与核心设计分析</p></div></div><div class="prose-custom">
+    <h2>20.1 Bridge 系统概览</h2>
+    <p>Claude Code 的 <strong>bridge/</strong> 目录包含 <strong>30 个文件</strong>，实现了与 IDE（如 VS Code、JetBrains）的双向通信系统。Bridge 让 Claude Code 可以作为 IDE 的后端引擎运行，IDE 作为前端提供可视化界面。</p>
+    <ul>
+      <li><strong>bridgeMain.ts</strong> — Bridge 主循环，管理连接建立、心跳检测和消息路由。启动后持续监听来自 IDE 的请求</li>
+      <li><strong>replBridge.ts</strong> — REPL 会话桥接，将终端 REPL 的输入输出转发到 IDE 的聊天面板</li>
+      <li><strong>bridgeMessaging.ts</strong> — 基于 JSON 的消息协议，定义了请求/响应/通知三种消息类型。支持消息序列化、反序列化和超时控制</li>
+      <li><strong>bridgePermissionCallbacks.ts</strong> — 权限委托机制，将文件写入、命令执行等权限确认请求转发给 IDE 端显示对话框，用户在 IDE 中确认后回传结果</li>
+    </ul>
+
+    <h2>20.2 认证与安全</h2>
+    <p>Bridge 通信使用多层安全机制：</p>
+    <ul>
+      <li><strong>jwtUtils.ts</strong> — JWT 令牌工具，用于 Bridge 连接的身份验证。生成短期令牌、验证签名和过期时间</li>
+      <li><strong>trustedDevice.ts</strong> — 设备信任管理，记录和验证已授权的设备指纹。首次连接需要用户确认信任</li>
+      <li><strong>workSecret.ts</strong> — 工作区密钥，为每个项目生成唯一的通信密钥，防止跨项目的未授权访问</li>
+    </ul>
+
+    <h2>20.3 远程会话管理</h2>
+    <p><strong>remote/</strong> 目录管理远程 Claude Code 会话：</p>
+    <ul>
+      <li><strong>RemoteSessionManager.ts</strong> — 远程会话管理器，负责创建、恢复和销毁远程会话。支持断线重连和状态同步</li>
+      <li><strong>SessionsWebSocket.ts</strong> — WebSocket 连接管理，在本地客户端和远程 Claude Code 实例之间建立实时双向通道</li>
+    </ul>
+    <p>远程模式允许 Claude Code 在云端服务器运行（更强的计算资源），本地客户端仅负责 UI 渲染和用户交互。</p>
+
+    <h2>20.4 Teleport — 环境迁移</h2>
+    <p><strong>utils/teleport/</strong>（4 个文件）实现环境迁移功能，将本地开发环境"传送"到远程：</p>
+    <ul>
+      <li><strong>gitBundle</strong> — 将 Git 仓库打包为 bundle 文件，包含所有未推送的提交和未暂存的更改</li>
+      <li><strong>environments</strong> — 环境快照管理，记录环境变量、工具版本和配置状态</li>
+      <li><strong>environmentSelection</strong> — 环境选择器，让用户选择要迁移的环境配置子集</li>
+    </ul>
+
+    <h2>20.5 Computer Use — 计算机操控</h2>
+    <p><strong>utils/computerUse/</strong>（15 个文件）实现了 AI 直接操控计算机的能力：</p>
+    <ul>
+      <li><strong>屏幕控制</strong> — 截图、OCR 文字识别、界面元素定位</li>
+      <li><strong>应用检测</strong> — 识别当前活动应用程序和窗口状态</li>
+      <li><strong>输入处理</strong> — 模拟键盘输入、鼠标点击和拖拽操作</li>
+      <li><strong>MCP 服务器</strong> — 将 Computer Use 能力暴露为 MCP 工具，其他代理也可调用</li>
+    </ul>
+
+    <h2>20.6 CLI 传输层</h2>
+    <p>CLI 的通信通过 <strong>handlers/</strong>（6 个文件）和 <strong>transports/</strong>（7 个文件）实现：</p>
+    <ul>
+      <li><strong>handlers</strong> — 请求处理器，分别处理 REPL、Bridge、Agent、远程等不同模式的消息</li>
+      <li><strong>transports</strong> — 传输层抽象，支持标准输入输出（stdio）、WebSocket、HTTP SSE 等多种传输协议</li>
+    </ul>
+
+    <h2>20.7 Deep Link 处理</h2>
+    <p><strong>utils/deepLink/</strong> 处理 <code>claude://</code> 协议的深度链接。用户可以通过浏览器中的链接直接打开 Claude Code 并自动执行特定操作（如打开项目、恢复会话、执行命令）。</p>
+  </div></section><section id="section-architecture" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-emerald-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4 text-emerald-500" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></div><div><h2 class="section-header-title">架构</h2><p class="section-header-subtitle">模块关系与设计决策</p></div></div><div class="prose-custom">
+    <div class="arch-diagram">
+      <h3>Bridge / IDE / 远程集成架构图</h3>
+      <div class="arch-flow">
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #e94560;">IDE / 客户端层</h4>
+          <div style="display: flex; justify-content: center; gap: 12px;">
+            <div style="background: #16213e; padding: 12px 18px; border-radius: 8px; border: 2px solid #e94560;">
+              <div style="font-weight: bold;">VS Code 扩展</div>
+              <div style="font-size: 11px; color: #aaa;">Bridge Client</div>
+            </div>
+            <div style="background: #16213e; padding: 12px 18px; border-radius: 8px; border: 1px solid #e94560;">
+              <div style="font-weight: bold;">JetBrains 插件</div>
+              <div style="font-size: 11px; color: #aaa;">Bridge Client</div>
+            </div>
+            <div style="background: #16213e; padding: 12px 18px; border-radius: 8px; border: 1px solid #e94560;">
+              <div style="font-weight: bold;">终端 REPL</div>
+              <div style="font-size: 11px; color: #aaa;">本地直连</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #e94560;">&#x2193; JSON 消息协议 &#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #0f3460;">Bridge 通信层 (bridge/)</h4>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div style="background: #16213e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #0f3460; font-size: 12px;">
+              <div style="font-weight: bold;">bridgeMain</div>
+              <div style="font-size: 10px; color: #aaa;">主循环</div>
+            </div>
+            <div style="background: #16213e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #0f3460; font-size: 12px;">
+              <div style="font-weight: bold;">replBridge</div>
+              <div style="font-size: 10px; color: #aaa;">REPL 桥接</div>
+            </div>
+            <div style="background: #16213e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #0f3460; font-size: 12px;">
+              <div style="font-weight: bold;">messaging</div>
+              <div style="font-size: 10px; color: #aaa;">消息协议</div>
+            </div>
+            <div style="background: #16213e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #0f3460; font-size: 12px;">
+              <div style="font-weight: bold;">permissions</div>
+              <div style="font-size: 10px; color: #aaa;">权限委托</div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 10px;">
+            <div style="background: #0d1b2a; padding: 6px 14px; border-radius: 16px; border: 1px solid #e94560; font-size: 11px;">JWT 认证</div>
+            <div style="background: #0d1b2a; padding: 6px 14px; border-radius: 16px; border: 1px solid #e94560; font-size: 11px;">设备信任</div>
+            <div style="background: #0d1b2a; padding: 6px 14px; border-radius: 16px; border: 1px solid #e94560; font-size: 11px;">工作区密钥</div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #0f3460;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #533483;">远程 &amp; 传输</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div style="background: #2d1b4e; padding: 12px; border-radius: 8px; border: 1px solid #533483;">
+              <div style="font-weight: bold; font-size: 13px;">remote/</div>
+              <div style="font-size: 11px; color: #aaa;">SessionManager</div>
+              <div style="font-size: 11px; color: #aaa;">WebSocket</div>
+            </div>
+            <div style="background: #2d1b4e; padding: 12px; border-radius: 8px; border: 1px solid #533483;">
+              <div style="font-weight: bold; font-size: 13px;">transports/</div>
+              <div style="font-size: 11px; color: #aaa;">stdio / WS / SSE</div>
+              <div style="font-size: 11px; color: #aaa;">7 个适配器</div>
+            </div>
+            <div style="background: #2d1b4e; padding: 12px; border-radius: 8px; border: 1px solid #533483;">
+              <div style="font-weight: bold; font-size: 13px;">handlers/</div>
+              <div style="font-size: 11px; color: #aaa;">6 种请求处理器</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #533483;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px;">
+          <h4 style="color: #48c9b0;">扩展能力</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #48c9b0; text-align: center;">
+              <div style="font-weight: bold; font-size: 13px;">Teleport</div>
+              <div style="font-size: 11px; color: #aaa;">环境迁移 (4 files)</div>
+              <div style="font-size: 11px; color: #aaa;">gitBundle / 环境快照</div>
+            </div>
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #48c9b0; text-align: center;">
+              <div style="font-weight: bold; font-size: 13px;">Computer Use</div>
+              <div style="font-size: 11px; color: #aaa;">屏幕操控 (15 files)</div>
+              <div style="font-size: 11px; color: #aaa;">截图 / 输入 / OCR</div>
+            </div>
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #48c9b0; text-align: center;">
+              <div style="font-weight: bold; font-size: 13px;">Deep Link</div>
+              <div style="font-size: 11px; color: #aaa;">claude:// 协议</div>
+              <div style="font-size: 11px; color: #aaa;">项目/会话直达</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></section><section id="section-source" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-amber-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-amber-500" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg></div><div><h2 class="section-header-title">源码</h2><p class="section-header-subtitle">共 <!-- -->3<!-- --> 个关键代码示例</p></div></div><div class="space-y-8"><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">01</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">Bridge 消息协议与主循环</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span><span>87</span><span>88</span><span>89</span><span>90</span><span>91</span><span>92</span><span>93</span><span>94</span><span>95</span><span>96</span><span>97</span><span>98</span><span>99</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// bridgeMessaging.ts: JSON 消息协议</span>
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">BridgeMessage</span> =
+  | <span class="hljs-title class_">BridgeRequest</span>
+  | <span class="hljs-title class_">BridgeResponse</span>
+  | <span class="hljs-title class_">BridgeNotification</span>;
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">BridgeRequest</span> {
+  <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;request&quot;</span>;
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">method</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">params</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">BridgeResponse</span> {
+  <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;response&quot;</span>;
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;           <span class="hljs-comment">// 对应 request.id</span>
+  <span class="hljs-attr">result</span>?: <span class="hljs-built_in">unknown</span>;
+  <span class="hljs-attr">error</span>?: { <span class="hljs-attr">code</span>: <span class="hljs-built_in">number</span>; <span class="hljs-attr">message</span>: <span class="hljs-built_in">string</span> };
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">BridgeNotification</span> {
+  <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;notification&quot;</span>;
+  <span class="hljs-attr">method</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">params</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;;
+}
+
+<span class="hljs-comment">// bridgeMain.ts: Bridge 主循环</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">BridgeMain</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">transport</span>: <span class="hljs-title class_">BridgeTransport</span>;
+  <span class="hljs-keyword">private</span> handlers = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;
+    <span class="hljs-built_in">string</span>,
+    <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">params</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;</span>) =&gt;</span> <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">unknown</span>&gt;
+  &gt;();
+
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">start</span>(<span class="hljs-attr">port</span>: <span class="hljs-built_in">number</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">void</span>&gt; {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">transport</span> = <span class="hljs-keyword">await</span> <span class="hljs-title function_">createTransport</span>(port);
+
+    <span class="hljs-comment">// 注册内置处理器</span>
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">handlers</span>.<span class="hljs-title function_">set</span>(
+      <span class="hljs-string">&quot;chat/send&quot;</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">handleChatSend</span>.<span class="hljs-title function_">bind</span>(<span class="hljs-variable language_">this</span>)
+    );
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">handlers</span>.<span class="hljs-title function_">set</span>(
+      <span class="hljs-string">&quot;file/read&quot;</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">handleFileRead</span>.<span class="hljs-title function_">bind</span>(<span class="hljs-variable language_">this</span>)
+    );
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">handlers</span>.<span class="hljs-title function_">set</span>(
+      <span class="hljs-string">&quot;permission/request&quot;</span>,
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">handlePermission</span>.<span class="hljs-title function_">bind</span>(<span class="hljs-variable language_">this</span>)
+    );
+
+    <span class="hljs-comment">// 主消息循环</span>
+    <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+      <span class="hljs-keyword">const</span> msg = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">transport</span>.<span class="hljs-title function_">receive</span>();
+      <span class="hljs-keyword">if</span> (msg.<span class="hljs-property">type</span> === <span class="hljs-string">&quot;request&quot;</span>) {
+        <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">handleRequest</span>(msg);
+      }
+    }
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">async</span> <span class="hljs-title function_">handleRequest</span>(
+    <span class="hljs-attr">req</span>: <span class="hljs-title class_">BridgeRequest</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">void</span>&gt; {
+    <span class="hljs-keyword">const</span> handler = <span class="hljs-variable language_">this</span>.<span class="hljs-property">handlers</span>.<span class="hljs-title function_">get</span>(req.<span class="hljs-property">method</span>);
+    <span class="hljs-keyword">if</span> (!handler) {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">transport</span>.<span class="hljs-title function_">send</span>({
+        <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;response&quot;</span>,
+        <span class="hljs-attr">id</span>: req.<span class="hljs-property">id</span>,
+        <span class="hljs-attr">error</span>: { <span class="hljs-attr">code</span>: -<span class="hljs-number">1</span>, <span class="hljs-attr">message</span>: <span class="hljs-string">&quot;Unknown method&quot;</span> }
+      });
+      <span class="hljs-keyword">return</span>;
+    }
+
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> <span class="hljs-title function_">handler</span>(req.<span class="hljs-property">params</span>);
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">transport</span>.<span class="hljs-title function_">send</span>({
+        <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;response&quot;</span>,
+        <span class="hljs-attr">id</span>: req.<span class="hljs-property">id</span>,
+        result
+      });
+    } <span class="hljs-keyword">catch</span> (err) {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">transport</span>.<span class="hljs-title function_">send</span>({
+        <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;response&quot;</span>,
+        <span class="hljs-attr">id</span>: req.<span class="hljs-property">id</span>,
+        <span class="hljs-attr">error</span>: {
+          <span class="hljs-attr">code</span>: -<span class="hljs-number">1</span>,
+          <span class="hljs-attr">message</span>: <span class="hljs-title class_">String</span>(err)
+        }
+      });
+    }
+  }
+
+  <span class="hljs-comment">// 向 IDE 发送通知（无需响应）</span>
+  <span class="hljs-title function_">notify</span>(<span class="hljs-attr">method</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">params</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;): <span class="hljs-built_in">void</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">transport</span>.<span class="hljs-title function_">send</span>({
+      <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;notification&quot;</span>,
+      method,
+      params
+    });
+  }
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">02</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">认证与 Teleport 环境迁移</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span><span>87</span><span>88</span><span>89</span><span>90</span><span>91</span><span>92</span><span>93</span><span>94</span><span>95</span><span>96</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// jwtUtils.ts: JWT 认证工具</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">JwtPayload</span> {
+  <span class="hljs-attr">sub</span>: <span class="hljs-built_in">string</span>;          <span class="hljs-comment">// 用户 ID</span>
+  <span class="hljs-attr">deviceId</span>: <span class="hljs-built_in">string</span>;     <span class="hljs-comment">// 设备指纹</span>
+  <span class="hljs-attr">workspaceId</span>: <span class="hljs-built_in">string</span>;  <span class="hljs-comment">// 工作区 ID</span>
+  <span class="hljs-attr">exp</span>: <span class="hljs-built_in">number</span>;          <span class="hljs-comment">// 过期时间</span>
+  <span class="hljs-attr">iat</span>: <span class="hljs-built_in">number</span>;          <span class="hljs-comment">// 签发时间</span>
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">createJwt</span>(<span class="hljs-params">
+  <span class="hljs-attr">payload</span>: <span class="hljs-title class_">JwtPayload</span>,
+  <span class="hljs-attr">secret</span>: <span class="hljs-built_in">string</span>
+</span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">const</span> header = { <span class="hljs-attr">alg</span>: <span class="hljs-string">&quot;HS256&quot;</span>, <span class="hljs-attr">typ</span>: <span class="hljs-string">&quot;JWT&quot;</span> };
+  <span class="hljs-keyword">const</span> headerB64 = <span class="hljs-title function_">base64url</span>(<span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">stringify</span>(header));
+  <span class="hljs-keyword">const</span> payloadB64 = <span class="hljs-title function_">base64url</span>(<span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">stringify</span>(payload));
+  <span class="hljs-keyword">const</span> signature = <span class="hljs-title function_">hmacSHA256</span>(
+    headerB64 + <span class="hljs-string">&quot;.&quot;</span> + payloadB64,
+    secret
+  );
+  <span class="hljs-keyword">return</span> headerB64 + <span class="hljs-string">&quot;.&quot;</span> + payloadB64 + <span class="hljs-string">&quot;.&quot;</span> + signature;
+}
+
+<span class="hljs-comment">// trustedDevice.ts: 设备信任</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TrustedDeviceManager</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">trustedDevices</span>: <span class="hljs-title class_">Set</span>&lt;<span class="hljs-built_in">string</span>&gt;;
+
+  <span class="hljs-title function_">isTrusted</span>(<span class="hljs-attr">deviceId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">boolean</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">trustedDevices</span>.<span class="hljs-title function_">has</span>(deviceId);
+  }
+
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">trustDevice</span>(<span class="hljs-attr">deviceId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">void</span>&gt; {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">trustedDevices</span>.<span class="hljs-title function_">add</span>(deviceId);
+    <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">persistToFile</span>();
+  }
+}
+
+<span class="hljs-comment">// workSecret.ts: 工作区密钥</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">getWorkSecret</span>(<span class="hljs-params">
+  <span class="hljs-attr">workspacePath</span>: <span class="hljs-built_in">string</span>
+</span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-keyword">const</span> secretPath = <span class="hljs-title function_">join</span>(
+    workspacePath, <span class="hljs-string">&quot;.claude&quot;</span>, <span class="hljs-string">&quot;work_secret&quot;</span>
+  );
+  <span class="hljs-keyword">if</span> (<span class="hljs-title function_">existsSync</span>(secretPath)) {
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">readFileSync</span>(secretPath, <span class="hljs-string">&quot;utf-8&quot;</span>);
+  }
+  <span class="hljs-comment">// 首次使用，生成新密钥</span>
+  <span class="hljs-keyword">const</span> secret = <span class="hljs-title function_">randomBytes</span>(<span class="hljs-number">32</span>).<span class="hljs-title function_">toString</span>(<span class="hljs-string">&quot;hex&quot;</span>);
+  <span class="hljs-title function_">writeFileSync</span>(secretPath, secret);
+  <span class="hljs-keyword">return</span> secret;
+}
+
+<span class="hljs-comment">// utils/teleport/gitBundle.ts: Git 仓库打包</span>
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">createGitBundle</span>(<span class="hljs-params">
+  <span class="hljs-attr">repoPath</span>: <span class="hljs-built_in">string</span>
+</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">Buffer</span>&gt; {
+  <span class="hljs-comment">// 1. 收集未推送的提交</span>
+  <span class="hljs-keyword">const</span> unpushed = <span class="hljs-keyword">await</span> <span class="hljs-title function_">execGit</span>(
+    repoPath, <span class="hljs-string">&quot;log&quot;</span>, <span class="hljs-string">&quot;--oneline&quot;</span>, <span class="hljs-string">&quot;@{u}..HEAD&quot;</span>
+  );
+
+  <span class="hljs-comment">// 2. 收集未暂存的更改</span>
+  <span class="hljs-keyword">const</span> stashResult = <span class="hljs-keyword">await</span> <span class="hljs-title function_">execGit</span>(
+    repoPath, <span class="hljs-string">&quot;stash&quot;</span>, <span class="hljs-string">&quot;create&quot;</span>
+  );
+
+  <span class="hljs-comment">// 3. 创建 bundle</span>
+  <span class="hljs-keyword">const</span> bundle = <span class="hljs-keyword">await</span> <span class="hljs-title function_">execGit</span>(
+    repoPath, <span class="hljs-string">&quot;bundle&quot;</span>, <span class="hljs-string">&quot;create&quot;</span>, <span class="hljs-string">&quot;-&quot;</span>,
+    <span class="hljs-string">&quot;--all&quot;</span>, <span class="hljs-string">&quot;--not&quot;</span>, <span class="hljs-string">&quot;--remotes&quot;</span>
+  );
+
+  <span class="hljs-keyword">return</span> bundle;
+}
+
+<span class="hljs-comment">// utils/teleport/environments.ts: 环境快照</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">EnvironmentSnapshot</span> {
+  <span class="hljs-attr">nodeVersion</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">pythonVersion</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">envVars</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>&gt;;
+  <span class="hljs-attr">gitConfig</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>&gt;;
+  <span class="hljs-attr">installedTools</span>: <span class="hljs-built_in">string</span>[];
+  <span class="hljs-attr">timestamp</span>: <span class="hljs-built_in">number</span>;
+}
+
+<span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">captureEnvironment</span>(<span class="hljs-params"></span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">EnvironmentSnapshot</span>&gt; {
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">nodeVersion</span>: process.<span class="hljs-property">version</span>,
+    <span class="hljs-attr">pythonVersion</span>: <span class="hljs-keyword">await</span> <span class="hljs-title function_">getCommandOutput</span>(<span class="hljs-string">&quot;python3 --version&quot;</span>),
+    <span class="hljs-attr">envVars</span>: <span class="hljs-title function_">filterSafeEnvVars</span>(process.<span class="hljs-property">env</span>),
+    <span class="hljs-attr">gitConfig</span>: <span class="hljs-keyword">await</span> <span class="hljs-title function_">getGitConfig</span>(),
+    <span class="hljs-attr">installedTools</span>: <span class="hljs-keyword">await</span> <span class="hljs-title function_">detectInstalledTools</span>(),
+    <span class="hljs-attr">timestamp</span>: <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()
+  };
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">03</span></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">Computer Use 与远程会话</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span><span>87</span><span>88</span><span>89</span><span>90</span><span>91</span><span>92</span><span>93</span><span>94</span><span>95</span><span>96</span><span>97</span><span>98</span><span>99</span><span>100</span><span>101</span><span>102</span><span>103</span><span>104</span><span>105</span><span>106</span><span>107</span><span>108</span><span>109</span><span>110</span><span>111</span><span>112</span><span>113</span><span>114</span><span>115</span><span>116</span><span>117</span><span>118</span><span>119</span><span>120</span><span>121</span><span>122</span><span>123</span><span>124</span><span>125</span><span>126</span><span>127</span><span>128</span><span>129</span><span>130</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// utils/computerUse: AI 计算机操控</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">ScreenCapture</span> {
+  <span class="hljs-attr">width</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">height</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">data</span>: <span class="hljs-title class_">Buffer</span>;         <span class="hljs-comment">// PNG 图像数据</span>
+  <span class="hljs-attr">timestamp</span>: <span class="hljs-built_in">number</span>;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">ClickAction</span> {
+  <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;click&quot;</span>;
+  <span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">y</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">button</span>: <span class="hljs-string">&quot;left&quot;</span> | <span class="hljs-string">&quot;right&quot;</span> | <span class="hljs-string">&quot;middle&quot;</span>;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">TypeAction</span> {
+  <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;type&quot;</span>;
+  <span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">modifiers</span>?: <span class="hljs-built_in">string</span>[];
+}
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">ComputerAction</span> =
+  | <span class="hljs-title class_">ClickAction</span>
+  | <span class="hljs-title class_">TypeAction</span>
+  | { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;screenshot&quot;</span> }
+  | { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;scroll&quot;</span>; <span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>; <span class="hljs-attr">y</span>: <span class="hljs-built_in">number</span>; <span class="hljs-attr">delta</span>: <span class="hljs-built_in">number</span> };
+
+<span class="hljs-comment">// Computer Use MCP 服务器</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ComputerUseMcpServer</span> {
+  <span class="hljs-title function_">getTools</span>(): <span class="hljs-title class_">ToolDefinition</span>[] {
+    <span class="hljs-keyword">return</span> [
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;computer_screenshot&quot;</span>,
+        <span class="hljs-attr">description</span>: <span class="hljs-string">&quot;截取当前屏幕截图&quot;</span>,
+        <span class="hljs-attr">inputSchema</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;object&quot;</span>, <span class="hljs-attr">properties</span>: {} }
+      },
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;computer_click&quot;</span>,
+        <span class="hljs-attr">description</span>: <span class="hljs-string">&quot;在指定坐标点击&quot;</span>,
+        <span class="hljs-attr">inputSchema</span>: {
+          <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;object&quot;</span>,
+          <span class="hljs-attr">properties</span>: {
+            <span class="hljs-attr">x</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;number&quot;</span> },
+            <span class="hljs-attr">y</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;number&quot;</span> },
+            <span class="hljs-attr">button</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;string&quot;</span> }
+          }
+        }
+      },
+      {
+        <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;computer_type&quot;</span>,
+        <span class="hljs-attr">description</span>: <span class="hljs-string">&quot;输入文本内容&quot;</span>,
+        <span class="hljs-attr">inputSchema</span>: {
+          <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;object&quot;</span>,
+          <span class="hljs-attr">properties</span>: {
+            <span class="hljs-attr">text</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;string&quot;</span> }
+          }
+        }
+      }
+    ];
+  }
+
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">handleTool</span>(
+    <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">params</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">unknown</span>&gt; {
+    <span class="hljs-keyword">switch</span> (name) {
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;computer_screenshot&quot;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-title function_">captureScreen</span>();
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;computer_click&quot;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-title function_">performClick</span>(
+          params.<span class="hljs-property">x</span> <span class="hljs-keyword">as</span> <span class="hljs-built_in">number</span>,
+          params.<span class="hljs-property">y</span> <span class="hljs-keyword">as</span> <span class="hljs-built_in">number</span>,
+          (params.<span class="hljs-property">button</span> <span class="hljs-keyword">as</span> <span class="hljs-built_in">string</span>) || <span class="hljs-string">&quot;left&quot;</span>
+        );
+      <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;computer_type&quot;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-title function_">typeText</span>(params.<span class="hljs-property">text</span> <span class="hljs-keyword">as</span> <span class="hljs-built_in">string</span>);
+      <span class="hljs-attr">default</span>:
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&quot;Unknown tool: &quot;</span> + name);
+    }
+  }
+}
+
+<span class="hljs-comment">// remote/RemoteSessionManager.ts: 远程会话管理</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RemoteSessionManager</span> {
+  <span class="hljs-keyword">private</span> sessions = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Map</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">RemoteSession</span>&gt;();
+
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">createSession</span>(
+    <span class="hljs-attr">config</span>: <span class="hljs-title class_">RemoteConfig</span>
+  ): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">RemoteSession</span>&gt; {
+    <span class="hljs-comment">// 1. 建立 WebSocket 连接</span>
+    <span class="hljs-keyword">const</span> ws = <span class="hljs-keyword">new</span> <span class="hljs-title class_">SessionsWebSocket</span>(config.<span class="hljs-property">endpoint</span>);
+    <span class="hljs-keyword">await</span> ws.<span class="hljs-title function_">connect</span>();
+
+    <span class="hljs-comment">// 2. JWT 认证</span>
+    <span class="hljs-keyword">const</span> token = <span class="hljs-title function_">createJwt</span>({
+      <span class="hljs-attr">sub</span>: config.<span class="hljs-property">userId</span>,
+      <span class="hljs-attr">deviceId</span>: config.<span class="hljs-property">deviceId</span>,
+      <span class="hljs-attr">workspaceId</span>: config.<span class="hljs-property">workspaceId</span>,
+      <span class="hljs-attr">exp</span>: <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>() + <span class="hljs-number">3600_000</span>,
+      <span class="hljs-attr">iat</span>: <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()
+    }, config.<span class="hljs-property">secret</span>);
+    <span class="hljs-keyword">await</span> ws.<span class="hljs-title function_">authenticate</span>(token);
+
+    <span class="hljs-comment">// 3. 可选: Teleport 环境</span>
+    <span class="hljs-keyword">if</span> (config.<span class="hljs-property">teleport</span>) {
+      <span class="hljs-keyword">const</span> bundle = <span class="hljs-keyword">await</span> <span class="hljs-title function_">createGitBundle</span>(config.<span class="hljs-property">repoPath</span>);
+      <span class="hljs-keyword">const</span> env = <span class="hljs-keyword">await</span> <span class="hljs-title function_">captureEnvironment</span>();
+      <span class="hljs-keyword">await</span> ws.<span class="hljs-title function_">send</span>(<span class="hljs-string">&quot;teleport&quot;</span>, { bundle, env });
+    }
+
+    <span class="hljs-keyword">const</span> <span class="hljs-attr">session</span>: <span class="hljs-title class_">RemoteSession</span> = {
+      <span class="hljs-attr">id</span>: <span class="hljs-title function_">generateSessionId</span>(),
+      ws,
+      <span class="hljs-attr">status</span>: <span class="hljs-string">&quot;connected&quot;</span>,
+      <span class="hljs-attr">createdAt</span>: <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()
+    };
+
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">sessions</span>.<span class="hljs-title function_">set</span>(session.<span class="hljs-property">id</span>, session);
+    <span class="hljs-keyword">return</span> session;
+  }
+
+  <span class="hljs-comment">// 断线重连</span>
+  <span class="hljs-keyword">async</span> <span class="hljs-title function_">reconnect</span>(<span class="hljs-attr">sessionId</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">void</span>&gt; {
+    <span class="hljs-keyword">const</span> session = <span class="hljs-variable language_">this</span>.<span class="hljs-property">sessions</span>.<span class="hljs-title function_">get</span>(sessionId);
+    <span class="hljs-keyword">if</span> (!session) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&quot;Session not found&quot;</span>);
+
+    <span class="hljs-keyword">await</span> session.<span class="hljs-property">ws</span>.<span class="hljs-title function_">reconnect</span>();
+    session.<span class="hljs-property">status</span> = <span class="hljs-string">&quot;connected&quot;</span>;
+  }
+}</code></pre></div></div></div></div></section><section id="section-interactive" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-purple-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-purple-500" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></div><div><h2 class="section-header-title">互动</h2><p class="section-header-subtitle">步进式流程演示</p></div></div><div class="mb-8"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden"><div class="flex items-center gap-2 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-[var(--color-accent)]" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span class="text-sm font-semibold text-[var(--color-text-secondary)]">互动演示</span></div><div class="p-5"><!--$?--><template id="B:0"></template><div class="flex flex-col gap-3 animate-pulse"><div class="h-4 w-3/4 rounded bg-[var(--color-bg-tertiary)]"></div><div class="h-40 rounded-lg bg-[var(--color-bg-tertiary)]"></div><div class="h-4 w-1/2 rounded bg-[var(--color-bg-tertiary)]"></div></div><!--/$--></div></div></div><div class="prose-custom">
+    <h3>Bridge 与远程集成交互式演练</h3>
+    <div class="interactive-demo">
+      <div class="step" data-step="1">
+        <h4>Step 1: IDE 建立 Bridge 连接</h4>
+        <p>VS Code 扩展启动时，通过本地端口与 Claude Code 进程建立 Bridge 连接。首次连接需要设备信任确认和 JWT 认证。</p>
+        <div class="code-highlight">
+          <pre>VS Code 扩展启动:
+  1. 发现本地 Claude Code 进程 (port: 7463)
+  2. 生成设备指纹: "device_abc123"
+  3. 首次连接: 弹出信任确认对话框
+  4. 用户确认 &#x2192; trustedDevice.trustDevice()
+  5. 创建 JWT: { sub: "user", deviceId: "device_abc123" }
+  6. Bridge 连接建立 &#x2714;</pre>
+        </div>
+      </div>
+      <div class="step" data-step="2">
+        <h4>Step 2: 消息双向通信</h4>
+        <p>IDE 通过 Bridge 发送用户消息，Claude Code 处理后通过通知推送结果。权限确认请求被转发到 IDE 显示对话框。</p>
+        <div class="code-highlight">
+          <pre>IDE &#x2192; Bridge: {
+  type: "request", id: "r1",
+  method: "chat/send",
+  params: { message: "重构 auth 模块" }
+}
+
+Bridge &#x2192; IDE: {
+  type: "notification",
+  method: "chat/streaming",
+  params: { content: "我来分析..." }
+}
+
+Bridge &#x2192; IDE: {
+  type: "request", id: "p1",
+  method: "permission/request",
+  params: { action: "write", path: "src/auth.ts" }
+}
+IDE &#x2192; Bridge: { type: "response", id: "p1", result: true }</pre>
+        </div>
+      </div>
+      <div class="step" data-step="3">
+        <h4>Step 3: Teleport 环境迁移</h4>
+        <p>用户需要将本地项目迁移到远程强力服务器上运行 Claude Code。Teleport 打包 Git 仓库和环境快照，通过 WebSocket 传送到远程实例。</p>
+        <div class="code-highlight">
+          <pre>Teleport 流程:
+  1. gitBundle: 打包未推送提交 + 未暂存更改 (2.3MB)
+  2. 环境快照: Node 20.x, Python 3.11, 12 个工具
+  3. WebSocket 传输 &#x2192; 远程服务器
+  4. 远程恢复: git unbundle + 环境变量设置
+  5. 远程 Claude Code 就绪 &#x2714;
+  6. 本地 &#x2192; 远程无缝切换</pre>
+        </div>
+      </div>
+      <div class="step" data-step="4">
+        <h4>Step 4: Computer Use 操控</h4>
+        <p>Claude Code 通过 Computer Use MCP 服务器直接操控桌面应用。截图识别界面元素，模拟点击和输入完成自动化任务。</p>
+        <div class="code-highlight">
+          <pre>Computer Use 操作序列:
+  1. computer_screenshot &#x2192; 截取桌面 (1920x1080)
+  2. AI 分析: 识别到 "Submit" 按钮 at (450, 320)
+  3. computer_click(450, 320, "left") &#x2192; 点击按钮
+  4. 等待页面加载...
+  5. computer_screenshot &#x2192; 验证操作结果
+  6. computer_type("测试数据") &#x2192; 填写表单
+  7. AI 确认: 任务完成 &#x2714;</pre>
+        </div>
+      </div>
+    </div>
+  </div></section><section class="mt-12 mb-10"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 transition-theme"><div class="flex items-center gap-2 mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-[var(--color-text-muted)]" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg><h3 class="text-sm font-semibold text-[var(--color-text-secondary)]">相关源文件</h3></div><div class="flex flex-wrap gap-2"><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">bridge/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">remote/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">utils/teleport/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">utils/computerUse/</span></div></div></section><nav class="grid grid-cols-2 gap-4 pt-6 border-t border-[var(--color-border)]"><a class="group flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md" href="/c19"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">上一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">终端 UI 框架</div></div></a><a class="group flex items-center justify-end gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md text-right" href="/"><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">完成</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">返回目录</div></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></nav></div><!--$--><!--/$--></div></div></main><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/chunks/webpack-4741459095cd400e.js" id="_R_" async=""></script><div hidden id="S:0"><div class="space-y-6"><div class="py-6 px-4 space-y-5"><div class="flex items-center justify-center gap-4"><div class="flex items-center gap-4"><div class="bg-blue-500 text-white rounded-xl w-28 h-20 flex flex-col items-center justify-center shadow-lg"><span class="text-xs font-bold">IDE</span><span class="text-[10px] opacity-60 mt-0.5">VS Code / JetBrains</span></div><div class="flex flex-col items-center gap-0.5"><span class="text-sm font-bold text-[var(--color-text-muted)]">↔</span><span class="text-[9px] text-[var(--color-text-muted)]">WebSocket</span></div></div><div class="flex items-center gap-4"><div class="bg-red-500 text-white rounded-xl w-28 h-20 flex flex-col items-center justify-center shadow-lg"><span class="text-xs font-bold">Bridge</span><span class="text-[10px] opacity-60 mt-0.5">WebSocket 桥接</span></div><div class="flex flex-col items-center gap-0.5"><span class="text-sm font-bold text-[var(--color-text-muted)]">↔</span><span class="text-[9px] text-[var(--color-text-muted)]">WebSocket</span></div></div><div class="flex items-center gap-4"><div class="bg-emerald-500 text-white rounded-xl w-28 h-20 flex flex-col items-center justify-center shadow-lg"><span class="text-xs font-bold">Claude Code</span><span class="text-[10px] opacity-60 mt-0.5">CLI 进程</span></div></div></div><div class="space-y-1.5"><div class="flex items-center gap-2 justify-center"><span class="text-[10px] text-[var(--color-text-muted)] w-20 text-right">IDE</span><span class="text-sm font-bold text-blue-400">→</span><span class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded px-2 py-0.5 text-[10px] font-mono text-[var(--color-text)]">user_input</span><span class="text-sm font-bold text-blue-400">→</span><span class="text-[10px] text-[var(--color-text-muted)] w-20">Claude Code</span></div><div class="flex items-center gap-2 justify-center"><span class="text-[10px] text-[var(--color-text-muted)] w-20 text-right">Claude Code</span><span class="text-sm font-bold text-emerald-400">←</span><span class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded px-2 py-0.5 text-[10px] font-mono text-[var(--color-text)]">assistant_msg</span><span class="text-sm font-bold text-emerald-400">←</span><span class="text-[10px] text-[var(--color-text-muted)] w-20">IDE</span></div><div class="flex items-center gap-2 justify-center"><span class="text-[10px] text-[var(--color-text-muted)] w-20 text-right">Claude Code</span><span class="text-sm font-bold text-emerald-400">←</span><span class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded px-2 py-0.5 text-[10px] font-mono text-[var(--color-text)]">tool_status</span><span class="text-sm font-bold text-emerald-400">←</span><span class="text-[10px] text-[var(--color-text-muted)] w-20">IDE</span></div><div class="flex items-center gap-2 justify-center"><span class="text-[10px] text-[var(--color-text-muted)] w-20 text-right">IDE</span><span class="text-sm font-bold text-blue-400">→</span><span class="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded px-2 py-0.5 text-[10px] font-mono text-[var(--color-text)]">permission</span><span class="text-sm font-bold text-blue-400">→</span><span class="text-[10px] text-[var(--color-text-muted)] w-20">Claude Code</span></div></div><div class="flex gap-1.5 justify-center flex-wrap"><span class="bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[10px] font-bold rounded px-2 py-1">内联 Diff</span><span class="bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[10px] font-bold rounded px-2 py-1">文件跳转</span><span class="bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[10px] font-bold rounded px-2 py-1">权限弹窗</span><span class="bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[10px] font-bold rounded px-2 py-1">进度展示</span><span class="bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[10px] font-bold rounded px-2 py-1">日志面板</span></div></div><div class="space-y-3"><div class="flex items-center justify-between"><div class="flex items-center gap-1"><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" title="重置"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw h-4 w-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button><button disabled="" class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="上一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back h-4 w-4" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg></button><button class="p-2 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" title="自动播放"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></button><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="下一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward h-4 w-4" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg></button></div><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-accent)] scale-125"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div></div><span class="text-xs font-mono text-[var(--color-text-muted)]">1<!-- --> / <!-- -->5</span></div><div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3"><div class="text-sm font-semibold text-[var(--color-text)]">Bridge 架构</div><div class="text-sm text-[var(--color-text-secondary)] mt-0.5">IDE 扩展通过 Bridge 进程与 Claude Code CLI 双向通信</div></div></div></div></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
+$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:0","S:0")</script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[9686,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"177\",\"static/chunks/app/layout-b5983c2a6e5f3636.js\"],\"default\"]\n3:I[9766,[],\"\"]\n4:I[8924,[],\"\"]\n5:I[7989,[],\"ClientSegmentRoot\"]\n6:I[1084,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"167\",\"static/chunks/app/(learn)/layout-428c68e7c724cf16.js\"],\"default\"]\n9:I[4431,[],\"OutletBoundary\"]\nb:I[5278,[],\"AsyncMetadataOutlet\"]\nd:I[4431,[],\"ViewportBoundary\"]\nf:I[4431,[],\"MetadataBoundary\"]\n10:\"$Sreact.suspense\"\n12:I[7150,[],\"\"]\n:HL[\"/_next/static/css/ad875cc29e795ab7.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"KKE32b9WFCkqyQ0X62vxy\",\"p\":\"\",\"c\":[\"\",\"c20\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"(learn)\",{\"children\":[[\"chapter\",\"c20\",\"d\"],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/ad875cc29e795ab7.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"icon\",\"href\":\"/favicon.svg\",\"type\":\"image/svg+xml\"}],[\"$\",\"script\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"\\n              (function() {\\n                try {\\n                  var mode = localStorage.getItem('theme');\\n                  if (mode === 'dark' || (!mode \u0026\u0026 window.matchMedia('(prefers-color-scheme: dark)').matches)) {\\n                    document.documentElement.classList.add('dark');\\n                  } else {\\n                    document.documentElement.classList.remove('dark');\\n                  }\\n                } catch(e) {}\\n              })();\\n            \"}}]]}],[\"$\",\"body\",null,{\"className\":\"min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased\",\"children\":[[\"$\",\"$L2\",null,{}],[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8\",\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]]}]]}],{\"children\":[\"(learn)\",[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L5\",null,{\"Component\":\"$6\",\"slots\":{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:style\",\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:1:props:style\",\"children\":404}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:style\",\"children\":[\"$\",\"h2\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:children:props:style\",\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]},\"params\":{},\"promise\":\"$@7\"}]]}],{\"children\":[[\"chapter\",\"c20\",\"d\"],[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[\"$L8\",null,[\"$\",\"$L9\",null,{\"children\":[\"$La\",[\"$\",\"$Lb\",null,{\"promise\":\"$@c\"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$Ld\",null,{\"children\":\"$Le\"}],null],[\"$\",\"$Lf\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$10\",null,{\"fallback\":null,\"children\":\"$L11\"}]}]}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$12\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"7:\"$0:f:0:1:2:children:1:props:children:1:props:params\"\n"])</script><script>self.__next_f.push([1,"13:I[5016,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"620\",\"static/chunks/620-2711a7e455946243.js\",\"6\",\"static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js\"],\"default\"]\n8:[\"$\",\"$L13\",null,{\"chapterId\":\"c20\"}]\n"])</script><script>self.__next_f.push([1,"e:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\na:null\n"])</script><script>self.__next_f.push([1,"c:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"深入 Claude Code 源码\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。\"}],[\"$\",\"meta\",\"2\",{\"name\":\"keywords\",\"content\":\"Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"11:\"$c:metadata\"\n"])</script></body></html>

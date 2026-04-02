@@ -1,0 +1,122 @@
+{
+  "components/visualizations/index.tsx -> ./c01-startup": {
+    "id": "components/visualizations/index.tsx -> ./c01-startup",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c01-startup_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c02-config": {
+    "id": "components/visualizations/index.tsx -> ./c02-config",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c02-config_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c03-query-engine": {
+    "id": "components/visualizations/index.tsx -> ./c03-query-engine",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c03-query-engine_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c04-query-loop": {
+    "id": "components/visualizations/index.tsx -> ./c04-query-loop",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c04-query-loop_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c05-api-client": {
+    "id": "components/visualizations/index.tsx -> ./c05-api-client",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c05-api-client_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c06-tool-arch": {
+    "id": "components/visualizations/index.tsx -> ./c06-tool-arch",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c06-tool-arch_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c07-tool-exec": {
+    "id": "components/visualizations/index.tsx -> ./c07-tool-exec",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c07-tool-exec_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c08-builtin-tools": {
+    "id": "components/visualizations/index.tsx -> ./c08-builtin-tools",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c08-builtin-tools_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c09-plan-workflow": {
+    "id": "components/visualizations/index.tsx -> ./c09-plan-workflow",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c09-plan-workflow_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c10-permissions": {
+    "id": "components/visualizations/index.tsx -> ./c10-permissions",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c10-permissions_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c11-hooks": {
+    "id": "components/visualizations/index.tsx -> ./c11-hooks",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c11-hooks_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c12-mcp": {
+    "id": "components/visualizations/index.tsx -> ./c12-mcp",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c12-mcp_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c13-memory": {
+    "id": "components/visualizations/index.tsx -> ./c13-memory",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c13-memory_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c14-subagent": {
+    "id": "components/visualizations/index.tsx -> ./c14-subagent",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c14-subagent_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c15-teams": {
+    "id": "components/visualizations/index.tsx -> ./c15-teams",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c15-teams_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c16-tasks": {
+    "id": "components/visualizations/index.tsx -> ./c16-tasks",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c16-tasks_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c17-skills": {
+    "id": "components/visualizations/index.tsx -> ./c17-skills",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c17-skills_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c18-state": {
+    "id": "components/visualizations/index.tsx -> ./c18-state",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c18-state_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c19-terminal-ui": {
+    "id": "components/visualizations/index.tsx -> ./c19-terminal-ui",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c19-terminal-ui_tsx.js"
+    ]
+  },
+  "components/visualizations/index.tsx -> ./c20-bridge": {
+    "id": "components/visualizations/index.tsx -> ./c20-bridge",
+    "files": [
+      "static/chunks/_app-pages-browser_src_components_visualizations_c20-bridge_tsx.js"
+    ]
+  }
+}

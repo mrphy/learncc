@@ -1,0 +1,468 @@
+<!DOCTYPE html><!--KKE32b9WFCkqyQ0X62vxy--><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/ad875cc29e795ab7.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-4741459095cd400e.js"/><script src="/_next/static/chunks/4bd1b696-c023c6e3521b1417.js" async=""></script><script src="/_next/static/chunks/255-aaafc19c72668c72.js" async=""></script><script src="/_next/static/chunks/main-app-14368e47824f3575.js" async=""></script><script src="/_next/static/chunks/619-ba102abea3e3d0e4.js" async=""></script><script src="/_next/static/chunks/app/layout-b5983c2a6e5f3636.js" async=""></script><script src="/_next/static/chunks/app/(learn)/layout-428c68e7c724cf16.js" async=""></script><script src="/_next/static/chunks/620-2711a7e455946243.js" async=""></script><script src="/_next/static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js" async=""></script><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>深入 Claude Code 源码</title><meta name="description" content="从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。"/><meta name="keywords" content="Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript"/><script>
+              (function() {
+                try {
+                  var mode = localStorage.getItem('theme');
+                  if (mode === 'dark' || (!mode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            </script><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased"><div hidden=""><!--$--><!--/$--></div><header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-md"><div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"><a class="flex items-center gap-2 font-bold text-lg text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal h-5 w-5 text-[var(--color-accent)]" aria-hidden="true"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg><span>Claude Code 源码解析</span></a><nav class="hidden md:flex items-center gap-1"><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/">首页</a><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01">开始学习</a><div class="mx-2 h-5 w-px bg-[var(--color-border)]"></div><button class="p-2 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" aria-label="切换主题"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></nav><button class="md:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]" aria-label="菜单"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5" aria-hidden="true"><path d="M4 12h16"></path><path d="M4 18h16"></path><path d="M4 6h16"></path></svg></button></div></header><main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex flex-row min-h-[calc(100vh-2rem)] gap-6 py-6"><aside class="hidden md:block w-56 shrink-0"><div class="sticky top-6"><aside class="hidden md:block w-56 shrink-0"><nav class="sticky top-[calc(3.5rem+1px)] max-h-[calc(100vh-3.5rem-1px)] overflow-y-auto py-6 pr-4 space-y-6"><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">启动与基础</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">01</span><span class="truncate">启动引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c02"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">02</span><span class="truncate">配置系统</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">核心引擎</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c03"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">03</span><span class="truncate">查询引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c04"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">04</span><span class="truncate">查询循环</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c05"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">05</span><span class="truncate">API 客户端</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-amber-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">工具系统</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c06"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">06</span><span class="truncate">工具架构</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors font-medium text-[var(--color-text)] bg-amber-500/10 dark:bg-amber-500/15" href="/c07"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">07</span><span class="truncate">工具执行引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c08"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">08</span><span class="truncate">内置工具全景</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c09"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">09</span><span class="truncate">计划与工作流</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">安全与权限</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c10"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">10</span><span class="truncate">权限系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c11"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">11</span><span class="truncate">Hook 生命周期</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">扩展与集成</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c12"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">12</span><span class="truncate">MCP 集成</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c13"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">13</span><span class="truncate">内存与上下文</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c14"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">14</span><span class="truncate">子代理系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c15"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">15</span><span class="truncate">Teams 多代理协作</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c16"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">16</span><span class="truncate">任务与调度</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c17"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">17</span><span class="truncate">Skills 与 Plugins</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-slate-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">界面与状态</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c18"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">18</span><span class="truncate">状态管理</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c19"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">19</span><span class="truncate">终端 UI 框架</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c20"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">20</span><span class="truncate">Bridge 与远程集成</span></a></li></ul></div></nav></aside></div></aside><div class="flex-1 min-w-0"><div class="pb-20"><header class="mb-6"><a class="group mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>返回目录</a><div class="flex items-center gap-3 mb-3"><span class="layer-tools layer-badge">工具系统</span><span class="text-sm font-mono font-semibold text-[var(--color-text-muted)]">第 <!-- -->07<!-- --> 章</span></div><h1 class="text-3xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-4xl">工具执行引擎</h1><p class="mt-2 text-lg text-[var(--color-text-secondary)]">并发编排与流式执行</p><div class="relative mt-6 rounded-xl border border-[var(--color-border)] overflow-hidden"><div class="absolute inset-0 opacity-[0.08]" style="background:linear-gradient(135deg, var(--layer-tools), var(--color-accent))"></div><div class="relative px-5 py-4"><div class="flex items-start gap-3"><div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style="background-color:var(--layer-tools-light)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true" style="color:var(--layer-tools)"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-1">核心洞察</div><p class="text-[15px] font-medium leading-relaxed text-[var(--color-text)]">安全工具并行执行，非安全工具串行隔离，通过兄弟 AbortController 实现级联中止</p></div></div></div></div></header><div class="sticky-tabs-bar"><div class="sticky-tabs-inner"><button class="sticky-tab-item sticky-tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>学习</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>架构</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>源码</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>互动</button></div></div><section id="section-learn" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-blue-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4 text-blue-500" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><h2 class="section-header-title">学习</h2><p class="section-header-subtitle">概念讲解与核心设计分析</p></div></div><div class="prose-custom">
+<h2>工具执行引擎概述</h2>
+<blockquote>工具架构定义了"工具是什么"，而工具执行引擎则决定了"工具怎么跑"。它管理并发调度、流式执行、权限校验、钩子集成、结果预算控制和错误分类。这是 Claude Code 从"收到模型输出"到"产生真实副作用"的关键路径。</blockquote>
+
+<h3>StreamingToolExecutor：流式并发执行器</h3>
+<p><code>StreamingToolExecutor</code> 是工具执行引擎的顶层管理器。当 Claude 的流式回复中包含多个 tool_use 块时，该执行器负责：</p>
+<ul>
+<li><strong>流式缓冲</strong> — 工具调用的 JSON 参数是流式到达的（一个 token 一个 token）。执行器将这些 delta 累积到缓冲区，直到完整的 JSON 输入到达</li>
+<li><strong>即时启动</strong> — 一旦某个工具的参数完整，立即开始执行，不等待其他工具</li>
+<li><strong>结果排序</strong> — 多个工具可能以不同顺序完成，但结果必须按 API 中 tool_use 块的原始顺序返回，以保证对话历史的一致性</li>
+<li><strong>错误隔离</strong> — 一个工具的失败不应影响其他工具的执行（除非它们是兄弟 Bash 命令）</li>
+</ul>
+
+<h3>toolOrchestration.ts：并发编排</h3>
+<p><code>partitionToolCalls()</code> 是并发编排的核心函数。它将一批工具调用分为两组：</p>
+<ul>
+<li><strong>并发组（parallel batch）</strong> — 所有 <code>isConcurrencySafe() === true</code> 的工具调用。这些工具不会互相干扰（如多个 GlobTool 或 GrepTool 调用），可以安全地使用 <code>Promise.all()</code> 并发执行</li>
+<li><strong>串行组（serial batch）</strong> — 所有 <code>isConcurrencySafe() === false</code> 的工具调用。这些工具可能有副作用或资源竞争（如 BashTool、FileWriteTool），必须逐个执行</li>
+</ul>
+<p>执行顺序：先执行并发组（所有并发安全的工具同时启动），再执行串行组（逐个执行）。这最大化了吞吐量，同时保证了安全性。</p>
+
+<h3>runToolUse() 执行管线</h3>
+<p><code>toolExecution.ts</code> 中的 <code>runToolUse()</code> 是单个工具调用的完整执行管线，按以下步骤执行：</p>
+<ol>
+<li><strong>查找工具</strong> — 根据 tool_use 块中的 name 查找匹配的工具实例</li>
+<li><strong>PreToolUse 钩子</strong> — 执行所有注册的前置钩子（可拦截、修改输入或直接提供结果）</li>
+<li><strong>权限检查</strong> — 调用 <code>tool.checkPermissions()</code> 判断是否允许执行</li>
+<li><strong>输入校验</strong> — 先用 Zod schema 校验，再调用 <code>tool.validateInput()</code> 做业务校验</li>
+<li><strong>执行工具</strong> — 调用 <code>tool.call(input, context)</code> 执行核心逻辑</li>
+<li><strong>PostToolUse 钩子</strong> — 执行所有注册的后置钩子（可修改结果、触发副作用）</li>
+<li><strong>构建返回值</strong> — 将 ToolResult 转换为 API 兼容的 <code>ToolResultBlockParam</code></li>
+<li><strong>文件历史追踪</strong> — 如果工具修改了文件，记录变更到文件历史中</li>
+</ol>
+
+<h3>兄弟 AbortController</h3>
+<p>当 Claude 同时调用多个 BashTool 时（如一个编译命令和一个测试命令），系统为同一批次的 Bash 调用创建"兄弟" AbortController：</p>
+<ul>
+<li>如果其中一个 Bash 命令出错（如编译失败），其兄弟进程会被立即终止</li>
+<li>这避免了无意义的等待（编译都失败了，测试没有意义）</li>
+<li>兄弟关系仅限于同一个 tool_use 批次中的 Bash 调用</li>
+</ul>
+
+<h3>工具结果预算</h3>
+<p><code>toolResultStorage.ts</code> 管理工具结果的大小控制：</p>
+<ul>
+<li>每个工具有 <code>maxResultSizeChars</code> 限制（默认 30000 字符）</li>
+<li>超大结果（如 <code>cat</code> 一个巨大文件）不会全部放入对话历史</li>
+<li>超大结果被持久化到磁盘的临时文件中</li>
+<li>对话历史中只保留一个预览（前 N 行 + "结果已截断" 提示）</li>
+<li>这防止了对话 token 数的爆炸性增长</li>
+</ul>
+
+<h3>错误分类与遥测</h3>
+<p>工具执行中的错误被分类为不同类型，用于遥测和用户反馈：</p>
+<ul>
+<li><strong>TelemetrySafeError</strong> — 可安全发送到遥测服务的错误（不包含敏感信息）</li>
+<li><strong>errno 错误</strong> — 系统错误码（如 ENOENT、EACCES），映射到用户友好的消息</li>
+<li><strong>稳定名称</strong> — 每种错误有一个稳定的字符串标识符，用于错误聚合和趋势分析</li>
+</ul>
+
+<h3>toolHooks.ts：钩子集成</h3>
+<p>工具钩子允许在工具执行的前后注入自定义逻辑：</p>
+<ul>
+<li><strong>PreToolUse 钩子</strong> — 在工具执行前调用。可以拦截调用（返回替代结果）、修改输入参数、执行额外的权限检查</li>
+<li><strong>PostToolUse 钩子</strong> — 在工具执行后调用。可以修改工具结果、触发通知、记录审计日志</li>
+<li>钩子通过 <code>settings.json</code> 配置，以外部命令形式运行</li>
+</ul>
+</div></section><section id="section-architecture" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-emerald-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4 text-emerald-500" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></div><div><h2 class="section-header-title">架构</h2><p class="section-header-subtitle">模块关系与设计决策</p></div></div><div class="prose-custom">
+<h2>工具执行引擎架构</h2>
+
+<h3>核心模块</h3>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>模块</th><th>职责</th><th>关键函数/类</th></tr></thead>
+<tbody>
+<tr><td>StreamingToolExecutor</td><td>流式并发执行管理</td><td>execute(), bufferDelta(), flushResults()</td></tr>
+<tr><td>toolOrchestration.ts</td><td>并发分组编排</td><td>partitionToolCalls()</td></tr>
+<tr><td>toolExecution.ts</td><td>单工具执行管线</td><td>runToolUse()</td></tr>
+<tr><td>toolResultStorage.ts</td><td>大结果持久化</td><td>persistLargeResult(), getResultPreview()</td></tr>
+<tr><td>toolHooks.ts</td><td>钩子集成层</td><td>runPreToolUseHooks(), runPostToolUseHooks()</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>runToolUse() 完整管线</h3>
+<ol>
+<li><strong>Find Tool</strong> → 在工具池中查找 tool_use.name 对应的工具实例</li>
+<li><strong>PreToolUse Hooks</strong> → 依次执行前置钩子（可拦截或修改）</li>
+<li><strong>checkPermissions()</strong> → 调用工具的权限检查方法</li>
+<li><strong>validateInput()</strong> → Zod schema + 自定义校验</li>
+<li><strong>tool.call()</strong> → 执行核心逻辑，传入 ToolUseContext</li>
+<li><strong>PostToolUse Hooks</strong> → 依次执行后置钩子</li>
+<li><strong>Build ToolResultBlockParam</strong> → 序列化为 API 格式</li>
+<li><strong>Track File History</strong> → 记录文件变更</li>
+</ol>
+
+<h3>并发编排策略</h3>
+<ul>
+<li><strong>阶段 1：分组</strong>
+  <ul>
+  <li>partitionToolCalls() 遍历所有工具调用</li>
+  <li>检查每个工具的 isConcurrencySafe() 返回值</li>
+  <li>分为 parallelBatch 和 serialBatch</li>
+  </ul>
+</li>
+<li><strong>阶段 2：并发执行</strong>
+  <ul>
+  <li>Promise.all(parallelBatch.map(runToolUse))</li>
+  <li>所有并发安全的工具同时启动</li>
+  </ul>
+</li>
+<li><strong>阶段 3：串行执行</strong>
+  <ul>
+  <li>for (const call of serialBatch) await runToolUse(call)</li>
+  <li>有副作用的工具逐个执行</li>
+  </ul>
+</li>
+</ul>
+
+<h3>兄弟 Abort 机制</h3>
+<p>同一批次的 Bash 工具调用共享一个 "sibling AbortController"：</p>
+<ul>
+<li>创建时：为每批 Bash 调用创建一个共享的 AbortController</li>
+<li>触发时：任一 Bash 命令 error → controller.abort()</li>
+<li>效果：所有兄弟 Bash 进程收到 SIGTERM</li>
+<li>范围：仅限同一 tool_use 批次，不同批次独立</li>
+</ul>
+
+<h3>设计决策</h3>
+<blockquote>
+<p><strong>为什么结果要持久化到磁盘而不是截断？</strong></p>
+<p>直接截断会丢失信息——如果 Claude 需要文件末尾的内容，截断后就无法访问了。持久化到磁盘后，后续的工具调用（如带 offset 参数的 FileReadTool）仍然可以访问完整内容。对话历史中的预览只是为了让 Claude 知道"内容很长，需要分段查看"。</p>
+</blockquote>
+</div></section><section id="section-source" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-amber-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-amber-500" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg></div><div><h2 class="section-header-title">源码</h2><p class="section-header-subtitle">共 <!-- -->3<!-- --> 个关键代码示例</p></div></div><div class="space-y-8"><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">01</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">runToolUse() 完整执行管线</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span><span>87</span><span>88</span><span>89</span><span>90</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// toolExecution.ts — 简化版</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">runToolUse</span>(<span class="hljs-params">
+  <span class="hljs-attr">toolCall</span>: <span class="hljs-title class_">ToolUseBlock</span>,
+  <span class="hljs-attr">tools</span>: <span class="hljs-title class_">Tool</span>[],
+  <span class="hljs-attr">context</span>: <span class="hljs-title class_">ToolUseContext</span>,
+  <span class="hljs-attr">hooks</span>: <span class="hljs-title class_">ToolHooks</span>
+</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ToolResultBlockParam</span>&gt; {
+  <span class="hljs-comment">// 1. 查找工具</span>
+  <span class="hljs-keyword">const</span> tool = tools.<span class="hljs-title function_">find</span>(<span class="hljs-function"><span class="hljs-params">t</span> =&gt;</span>
+    t.<span class="hljs-property">name</span> === toolCall.<span class="hljs-property">name</span> ||
+    t.<span class="hljs-property">aliases</span>?.<span class="hljs-title function_">includes</span>(toolCall.<span class="hljs-property">name</span>)
+  )
+  <span class="hljs-keyword">if</span> (!tool) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;tool_result&#x27;</span>,
+      <span class="hljs-attr">tool_use_id</span>: toolCall.<span class="hljs-property">id</span>,
+      <span class="hljs-attr">content</span>: <span class="hljs-string">&#x27;Unknown tool: &#x27;</span> + toolCall.<span class="hljs-property">name</span>,
+      <span class="hljs-attr">is_error</span>: <span class="hljs-literal">true</span>,
+    }
+  }
+
+  <span class="hljs-comment">// 2. PreToolUse 钩子</span>
+  <span class="hljs-keyword">const</span> preHookResult = <span class="hljs-keyword">await</span> hooks.<span class="hljs-title function_">runPreToolUseHooks</span>({
+    tool,
+    <span class="hljs-attr">input</span>: toolCall.<span class="hljs-property">input</span>,
+    context,
+  })
+  <span class="hljs-keyword">if</span> (preHookResult?.<span class="hljs-property">intercepted</span>) {
+    <span class="hljs-comment">// 钩子提供了替代结果，跳过实际执行</span>
+    <span class="hljs-keyword">return</span> preHookResult.<span class="hljs-property">result</span>
+  }
+  <span class="hljs-comment">// 钩子可能修改了输入</span>
+  <span class="hljs-keyword">const</span> input = preHookResult?.<span class="hljs-property">modifiedInput</span> ?? toolCall.<span class="hljs-property">input</span>
+
+  <span class="hljs-comment">// 3. 权限检查</span>
+  <span class="hljs-keyword">const</span> permResult = <span class="hljs-keyword">await</span> tool.<span class="hljs-title function_">checkPermissions</span>(
+    input,
+    context.<span class="hljs-property">options</span>.<span class="hljs-property">permissionContext</span>
+  )
+  <span class="hljs-keyword">if</span> (permResult.<span class="hljs-property">denied</span>) {
+    <span class="hljs-comment">// 需要用户确认或直接拒绝</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">await</span> <span class="hljs-title function_">handlePermissionDenial</span>(permResult, tool, context)
+  }
+
+  <span class="hljs-comment">// 4. 输入校验</span>
+  <span class="hljs-keyword">const</span> parseResult = tool.<span class="hljs-property">inputSchema</span>.<span class="hljs-title function_">safeParse</span>(input)
+  <span class="hljs-keyword">if</span> (!parseResult.<span class="hljs-property">success</span>) {
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">buildErrorResult</span>(toolCall.<span class="hljs-property">id</span>, parseResult.<span class="hljs-property">error</span>)
+  }
+  <span class="hljs-keyword">if</span> (tool.<span class="hljs-property">validateInput</span>) {
+    <span class="hljs-keyword">const</span> validationError = <span class="hljs-keyword">await</span> tool.<span class="hljs-title function_">validateInput</span>(parseResult.<span class="hljs-property">data</span>)
+    <span class="hljs-keyword">if</span> (validationError) {
+      <span class="hljs-keyword">return</span> <span class="hljs-title function_">buildErrorResult</span>(toolCall.<span class="hljs-property">id</span>, validationError)
+    }
+  }
+
+  <span class="hljs-comment">// 5. 执行工具</span>
+  <span class="hljs-keyword">let</span> <span class="hljs-attr">toolResult</span>: <span class="hljs-title class_">ToolResult</span>
+  <span class="hljs-keyword">try</span> {
+    toolResult = <span class="hljs-keyword">await</span> tool.<span class="hljs-title function_">call</span>(parseResult.<span class="hljs-property">data</span>, context)
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-comment">// 错误分类</span>
+    <span class="hljs-keyword">const</span> classified = <span class="hljs-title function_">classifyError</span>(error)
+    <span class="hljs-title function_">trackTelemetry</span>(<span class="hljs-string">&#x27;tool_error&#x27;</span>, {
+      <span class="hljs-attr">tool</span>: tool.<span class="hljs-property">name</span>,
+      <span class="hljs-attr">errorName</span>: classified.<span class="hljs-property">stableName</span>,
+    })
+    <span class="hljs-keyword">return</span> <span class="hljs-title function_">buildErrorResult</span>(toolCall.<span class="hljs-property">id</span>, classified.<span class="hljs-property">message</span>)
+  }
+
+  <span class="hljs-comment">// 6. PostToolUse 钩子</span>
+  toolResult = <span class="hljs-keyword">await</span> hooks.<span class="hljs-title function_">runPostToolUseHooks</span>({
+    tool,
+    input,
+    <span class="hljs-attr">result</span>: toolResult,
+    context,
+  })
+
+  <span class="hljs-comment">// 7. 结果预算控制</span>
+  <span class="hljs-keyword">const</span> resultParam = <span class="hljs-keyword">await</span> <span class="hljs-title function_">buildToolResultParam</span>(
+    toolCall.<span class="hljs-property">id</span>, tool, toolResult
+  )
+
+  <span class="hljs-comment">// 8. 文件历史追踪</span>
+  <span class="hljs-keyword">if</span> (!tool.<span class="hljs-title function_">isReadOnly</span>()) {
+    <span class="hljs-title function_">trackFileHistory</span>(tool.<span class="hljs-property">name</span>, input, context)
+  }
+
+  <span class="hljs-keyword">return</span> resultParam
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">02</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">并发编排与兄弟 Abort</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// toolOrchestration.ts — 简化版</span>
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">PartitionedCalls</span> {
+  <span class="hljs-attr">parallelBatch</span>: <span class="hljs-title class_">ToolUseBlock</span>[]
+  <span class="hljs-attr">serialBatch</span>: <span class="hljs-title class_">ToolUseBlock</span>[]
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">partitionToolCalls</span>(<span class="hljs-params">
+  <span class="hljs-attr">toolCalls</span>: <span class="hljs-title class_">ToolUseBlock</span>[],
+  <span class="hljs-attr">tools</span>: <span class="hljs-title class_">Tool</span>[]
+</span>): <span class="hljs-title class_">PartitionedCalls</span> {
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">parallelBatch</span>: <span class="hljs-title class_">ToolUseBlock</span>[] = []
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">serialBatch</span>: <span class="hljs-title class_">ToolUseBlock</span>[] = []
+
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> call <span class="hljs-keyword">of</span> toolCalls) {
+    <span class="hljs-keyword">const</span> tool = tools.<span class="hljs-title function_">find</span>(<span class="hljs-function"><span class="hljs-params">t</span> =&gt;</span> t.<span class="hljs-property">name</span> === call.<span class="hljs-property">name</span>)
+    <span class="hljs-keyword">if</span> (tool?.<span class="hljs-title function_">isConcurrencySafe</span>()) {
+      parallelBatch.<span class="hljs-title function_">push</span>(call)
+    } <span class="hljs-keyword">else</span> {
+      serialBatch.<span class="hljs-title function_">push</span>(call)
+    }
+  }
+
+  <span class="hljs-keyword">return</span> { parallelBatch, serialBatch }
+}
+
+<span class="hljs-comment">// 执行编排</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">executeToolCalls</span>(<span class="hljs-params">
+  <span class="hljs-attr">toolCalls</span>: <span class="hljs-title class_">ToolUseBlock</span>[],
+  <span class="hljs-attr">tools</span>: <span class="hljs-title class_">Tool</span>[],
+  <span class="hljs-attr">context</span>: <span class="hljs-title class_">ToolUseContext</span>
+</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ToolResultBlockParam</span>[]&gt; {
+  <span class="hljs-keyword">const</span> { parallelBatch, serialBatch } = <span class="hljs-title function_">partitionToolCalls</span>(
+    toolCalls, tools
+  )
+
+  <span class="hljs-comment">// 阶段 1：并发执行（所有并发安全的工具同时启动）</span>
+  <span class="hljs-keyword">const</span> parallelResults = <span class="hljs-keyword">await</span> <span class="hljs-title class_">Promise</span>.<span class="hljs-title function_">all</span>(
+    parallelBatch.<span class="hljs-title function_">map</span>(<span class="hljs-function"><span class="hljs-params">call</span> =&gt;</span> <span class="hljs-title function_">runToolUse</span>(call, tools, context))
+  )
+
+  <span class="hljs-comment">// 阶段 2：串行执行（有副作用的工具逐个执行）</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">serialResults</span>: <span class="hljs-title class_">ToolResultBlockParam</span>[] = []
+
+  <span class="hljs-comment">// 为同批次 Bash 调用创建兄弟 AbortController</span>
+  <span class="hljs-keyword">const</span> siblingAbort = <span class="hljs-keyword">new</span> <span class="hljs-title class_">AbortController</span>()
+  <span class="hljs-keyword">const</span> bashCalls = serialBatch.<span class="hljs-title function_">filter</span>(<span class="hljs-function"><span class="hljs-params">c</span> =&gt;</span> c.<span class="hljs-property">name</span> === <span class="hljs-string">&#x27;Bash&#x27;</span>)
+
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> call <span class="hljs-keyword">of</span> serialBatch) {
+    <span class="hljs-comment">// 如果兄弟 Bash 已失败，跳过剩余 Bash 调用</span>
+    <span class="hljs-keyword">if</span> (call.<span class="hljs-property">name</span> === <span class="hljs-string">&#x27;Bash&#x27;</span> &amp;&amp; siblingAbort.<span class="hljs-property">signal</span>.<span class="hljs-property">aborted</span>) {
+      serialResults.<span class="hljs-title function_">push</span>({
+        <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;tool_result&#x27;</span>,
+        <span class="hljs-attr">tool_use_id</span>: call.<span class="hljs-property">id</span>,
+        <span class="hljs-attr">content</span>: <span class="hljs-string">&#x27;Skipped: sibling Bash command failed&#x27;</span>,
+        <span class="hljs-attr">is_error</span>: <span class="hljs-literal">true</span>,
+      })
+      <span class="hljs-keyword">continue</span>
+    }
+
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> <span class="hljs-title function_">runToolUse</span>(call, tools, {
+        ...context,
+        <span class="hljs-attr">abortController</span>: call.<span class="hljs-property">name</span> === <span class="hljs-string">&#x27;Bash&#x27;</span>
+          ? siblingAbort
+          : context.<span class="hljs-property">abortController</span>,
+      })
+      serialResults.<span class="hljs-title function_">push</span>(result)
+    } <span class="hljs-keyword">catch</span> (error) {
+      <span class="hljs-comment">// Bash 错误触发兄弟 abort</span>
+      <span class="hljs-keyword">if</span> (call.<span class="hljs-property">name</span> === <span class="hljs-string">&#x27;Bash&#x27;</span> &amp;&amp; bashCalls.<span class="hljs-property">length</span> &gt; <span class="hljs-number">1</span>) {
+        siblingAbort.<span class="hljs-title function_">abort</span>()
+      }
+      serialResults.<span class="hljs-title function_">push</span>(<span class="hljs-title function_">buildErrorResult</span>(call.<span class="hljs-property">id</span>, error))
+    }
+  }
+
+  <span class="hljs-comment">// 按原始顺序合并结果</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-title function_">mergeResultsInOrder</span>(
+    toolCalls, parallelResults, serialResults
+  )
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">03</span></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">结果预算控制与错误分类</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span><span>87</span><span>88</span><span>89</span><span>90</span><span>91</span><span>92</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// toolResultStorage.ts — 大结果持久化</span>
+<span class="hljs-keyword">import</span> { writeFile, mkdtemp } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;fs/promises&#x27;</span>
+<span class="hljs-keyword">import</span> { join } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;path&#x27;</span>
+<span class="hljs-keyword">import</span> { tmpdir } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;os&#x27;</span>
+
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">DEFAULT_MAX_CHARS</span> = <span class="hljs-number">30_000</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">buildToolResultParam</span>(<span class="hljs-params">
+  <span class="hljs-attr">toolUseId</span>: <span class="hljs-built_in">string</span>,
+  <span class="hljs-attr">tool</span>: <span class="hljs-title class_">Tool</span>,
+  <span class="hljs-attr">result</span>: <span class="hljs-title class_">ToolResult</span>
+</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ToolResultBlockParam</span>&gt; {
+  <span class="hljs-keyword">const</span> maxChars = tool.<span class="hljs-property">maxResultSizeChars</span> ?? <span class="hljs-variable constant_">DEFAULT_MAX_CHARS</span>
+  <span class="hljs-keyword">const</span> content = <span class="hljs-keyword">typeof</span> result.<span class="hljs-property">data</span> === <span class="hljs-string">&#x27;string&#x27;</span>
+    ? result.<span class="hljs-property">data</span>
+    : <span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">stringify</span>(result.<span class="hljs-property">data</span>)
+
+  <span class="hljs-comment">// 结果在预算内：直接返回</span>
+  <span class="hljs-keyword">if</span> (content.<span class="hljs-property">length</span> &lt;= maxChars) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;tool_result&#x27;</span>,
+      <span class="hljs-attr">tool_use_id</span>: toolUseId,
+      content,
+    }
+  }
+
+  <span class="hljs-comment">// 结果超预算：持久化到磁盘</span>
+  <span class="hljs-keyword">const</span> tmpDir = <span class="hljs-keyword">await</span> <span class="hljs-title function_">mkdtemp</span>(<span class="hljs-title function_">join</span>(<span class="hljs-title function_">tmpdir</span>(), <span class="hljs-string">&#x27;cc-result-&#x27;</span>))
+  <span class="hljs-keyword">const</span> filePath = <span class="hljs-title function_">join</span>(tmpDir, <span class="hljs-string">&#x27;result.txt&#x27;</span>)
+  <span class="hljs-keyword">await</span> <span class="hljs-title function_">writeFile</span>(filePath, content, <span class="hljs-string">&#x27;utf-8&#x27;</span>)
+
+  <span class="hljs-comment">// 生成预览（前 100 行 + 截断提示）</span>
+  <span class="hljs-keyword">const</span> lines = content.<span class="hljs-title function_">split</span>(<span class="hljs-string">&#x27;\n&#x27;</span>)
+  <span class="hljs-keyword">const</span> previewLines = lines.<span class="hljs-title function_">slice</span>(<span class="hljs-number">0</span>, <span class="hljs-number">100</span>)
+  <span class="hljs-keyword">const</span> preview = [
+    ...previewLines,
+    <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-string">&#x27;... (结果共 &#x27;</span> + lines.<span class="hljs-property">length</span> + <span class="hljs-string">&#x27; 行，&#x27;</span> + content.<span class="hljs-property">length</span> + <span class="hljs-string">&#x27; 字符)&#x27;</span>,
+    <span class="hljs-string">&#x27;完整结果已保存到: &#x27;</span> + filePath,
+    <span class="hljs-string">&#x27;使用 Read 工具配合 offset 参数查看完整内容&#x27;</span>,
+  ].<span class="hljs-title function_">join</span>(<span class="hljs-string">&#x27;\n&#x27;</span>)
+
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">type</span>: <span class="hljs-string">&#x27;tool_result&#x27;</span>,
+    <span class="hljs-attr">tool_use_id</span>: toolUseId,
+    <span class="hljs-attr">content</span>: preview,
+  }
+}
+
+<span class="hljs-comment">// 错误分类系统</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ClassifiedError</span> {
+  <span class="hljs-attr">stableName</span>: <span class="hljs-built_in">string</span>      <span class="hljs-comment">// 用于遥测聚合</span>
+  <span class="hljs-attr">message</span>: <span class="hljs-built_in">string</span>         <span class="hljs-comment">// 用户友好的消息</span>
+  <span class="hljs-attr">isTelemetrySafe</span>: <span class="hljs-built_in">boolean</span> <span class="hljs-comment">// 是否可安全发送</span>
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">classifyError</span>(<span class="hljs-params"><span class="hljs-attr">error</span>: <span class="hljs-built_in">unknown</span></span>): <span class="hljs-title class_">ClassifiedError</span> {
+  <span class="hljs-comment">// TelemetrySafeError：开发者标记的安全错误</span>
+  <span class="hljs-keyword">if</span> (error <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">TelemetrySafeError</span>) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">stableName</span>: error.<span class="hljs-property">name</span>,
+      <span class="hljs-attr">message</span>: error.<span class="hljs-property">message</span>,
+      <span class="hljs-attr">isTelemetrySafe</span>: <span class="hljs-literal">true</span>,
+    }
+  }
+
+  <span class="hljs-comment">// 系统 errno 错误</span>
+  <span class="hljs-keyword">if</span> (<span class="hljs-title function_">isErrnoError</span>(error)) {
+    <span class="hljs-keyword">const</span> mapped = <span class="hljs-variable constant_">ERRNO_MAP</span>[error.<span class="hljs-property">code</span>] ?? {
+      <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;unknown_system_error&#x27;</span>,
+      <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;系统错误: &#x27;</span> + error.<span class="hljs-property">code</span>,
+    }
+    <span class="hljs-keyword">return</span> { ...mapped, <span class="hljs-attr">isTelemetrySafe</span>: <span class="hljs-literal">true</span> }
+  }
+
+  <span class="hljs-comment">// 未知错误：不发送详细信息到遥测</span>
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">stableName</span>: <span class="hljs-string">&#x27;unknown_error&#x27;</span>,
+    <span class="hljs-attr">message</span>: error <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Error</span>
+      ? error.<span class="hljs-property">message</span>
+      : <span class="hljs-string">&#x27;An unknown error occurred&#x27;</span>,
+    <span class="hljs-attr">isTelemetrySafe</span>: <span class="hljs-literal">false</span>,
+  }
+}
+
+<span class="hljs-keyword">const</span> <span class="hljs-attr">ERRNO_MAP</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, { <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>; <span class="hljs-attr">message</span>: <span class="hljs-built_in">string</span> }&gt; = {
+  <span class="hljs-attr">ENOENT</span>:  { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;file_not_found&#x27;</span>,   <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;文件或目录不存在&#x27;</span> },
+  <span class="hljs-attr">EACCES</span>:  { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;permission_denied&#x27;</span>, <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;没有访问权限&#x27;</span> },
+  <span class="hljs-attr">EISDIR</span>:  { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;is_directory&#x27;</span>,      <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;目标是目录，不是文件&#x27;</span> },
+  <span class="hljs-attr">ENOSPC</span>:  { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;no_space&#x27;</span>,          <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;磁盘空间不足&#x27;</span> },
+  <span class="hljs-attr">EMFILE</span>:  { <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;too_many_files&#x27;</span>,    <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;打开的文件数过多&#x27;</span> },
+}</code></pre></div></div></div></div></section><section id="section-interactive" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-purple-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-purple-500" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></div><div><h2 class="section-header-title">互动</h2><p class="section-header-subtitle">步进式流程演示</p></div></div><div class="mb-8"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden"><div class="flex items-center gap-2 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-[var(--color-accent)]" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span class="text-sm font-semibold text-[var(--color-text-secondary)]">互动演示</span></div><div class="p-5"><!--$?--><template id="B:0"></template><div class="flex flex-col gap-3 animate-pulse"><div class="h-4 w-3/4 rounded bg-[var(--color-bg-tertiary)]"></div><div class="h-40 rounded-lg bg-[var(--color-bg-tertiary)]"></div><div class="h-4 w-1/2 rounded bg-[var(--color-bg-tertiary)]"></div></div><!--/$--></div></div></div><div class="prose-custom">
+<h2>工具执行引擎互动解析</h2>
+
+<h3>第 1 步：理解流式工具执行的挑战</h3>
+<p>Claude 的回复是流式的。当 Claude 决定调用工具时，工具的参数也是逐 token 到达的：</p>
+<pre>
+token 1: {"type":"tool_use","name":"Bash","input":{
+token 2: "command":"ls
+token 3:  -la /
+token 4: tmp"}}
+</pre>
+<p>StreamingToolExecutor 面临的挑战：</p>
+<ul>
+<li>什么时候参数"完整"了？（需要解析 JSON 嵌套层级）</li>
+<li>如果同时有 3 个工具调用流入，如何管理 3 个独立的缓冲区？</li>
+<li>如果工具 A 先完成但工具 B 先在流中出现，结果如何排序？</li>
+</ul>
+
+<h3>第 2 步：并发编排的智慧</h3>
+<p>想象 Claude 同时调用 3 个工具：2 个 Grep + 1 个 FileWrite。partitionToolCalls 会这样处理：</p>
+<ul>
+<li><strong>并发组</strong>：2 个 GrepTool（只读、无副作用、可并发）</li>
+<li><strong>串行组</strong>：1 个 FileWriteTool（有副作用、不可并发）</li>
+<li><strong>执行顺序</strong>：先并发执行 2 个 Grep（～200ms），再执行 FileWrite（～50ms）</li>
+<li><strong>如果全串行</strong>：200ms + 200ms + 50ms = 450ms</li>
+<li><strong>并发+串行</strong>：200ms + 50ms = 250ms（节省 44%）</li>
+</ul>
+
+<h3>第 3 步：兄弟 Abort 的实际场景</h3>
+<p>Claude 经常同时调用多个 Bash 命令，比如：</p>
+<ol>
+<li><code>npm run build</code>（编译项目）</li>
+<li><code>npm run test</code>（运行测试）</li>
+<li><code>npm run lint</code>（代码检查）</li>
+</ol>
+<p>如果编译在第 2 秒失败了，测试和 lint 都没有意义了。兄弟 AbortController 确保编译失败后，测试和 lint 进程立即被 SIGTERM 终止，而不是白白等待它们完成。</p>
+
+<h3>第 4 步：结果预算的必要性</h3>
+<p>考虑这个场景：Claude 执行 <code>cat large_file.log</code>，文件有 100 万行。</p>
+<ul>
+<li><strong>无预算控制</strong>：100 万行全部进入对话历史，下一次 API 调用的 input tokens 暴增，成本飙升，可能超过 context window</li>
+<li><strong>有预算控制</strong>：前 100 行作为预览放入对话历史，完整内容存磁盘。Claude 看到预览后可以说"让我读取第 500-600 行"，使用 FileReadTool 的 offset 参数精确获取</li>
+<li><strong>效果</strong>：对话 token 数保持可控，Claude 仍能访问完整信息</li>
+</ul>
+
+<h3>第 5 步：钩子系统的力量</h3>
+<p>PreToolUse 和 PostToolUse 钩子赋予用户扩展工具行为的能力：</p>
+<ul>
+<li><strong>自动审批</strong>：PreToolUse 钩子检查工具调用是否匹配白名单，自动放行</li>
+<li><strong>日志审计</strong>：PostToolUse 钩子将每次工具调用记录到审计日志</li>
+<li><strong>结果改写</strong>：PostToolUse 钩子过滤敏感信息（如 API Key）后再返回</li>
+<li><strong>拦截替换</strong>：PreToolUse 钩子可以完全替代工具执行（如用缓存结果代替实际 Bash 调用）</li>
+</ul>
+
+<h3>关键设计洞察</h3>
+<ul>
+<li><strong>流式友好</strong>：整个引擎围绕"token 逐个到达"设计，而非"一次性拿到完整输入"</li>
+<li><strong>渐进式并发</strong>：不是简单地全并发或全串行，而是按工具特性智能分组</li>
+<li><strong>弹性预算</strong>：大结果不会炸掉对话，但完整信息不会丢失</li>
+<li><strong>可观测性</strong>：错误分类、遥测追踪、文件历史记录确保问题可排查</li>
+</ul>
+</div></section><section class="mt-12 mb-10"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 transition-theme"><div class="flex items-center gap-2 mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-[var(--color-text-muted)]" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg><h3 class="text-sm font-semibold text-[var(--color-text-secondary)]">相关源文件</h3></div><div class="flex flex-wrap gap-2"><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">services/tools/</span></div></div></section><nav class="grid grid-cols-2 gap-4 pt-6 border-t border-[var(--color-border)]"><a class="group flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md" href="/c06"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">上一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">工具架构</div></div></a><a class="group flex items-center justify-end gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md text-right" href="/c08"><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">下一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">内置工具全景</div></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></nav></div><!--$--><!--/$--></div></div></main><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/chunks/webpack-4741459095cd400e.js" id="_R_" async=""></script><div hidden id="S:0"><div class="space-y-6"><div class="py-6 px-4 space-y-5"><div><div class="text-[10px] font-bold text-emerald-500 mb-2">并行执行 (ReadOnly)</div><div class="flex gap-2"><div class="bg-amber-400 text-white rounded-lg px-3 py-2.5 text-xs font-bold shadow-md flex-1 text-center">Read A</div><div class="bg-amber-500 text-white rounded-lg px-3 py-2.5 text-xs font-bold shadow-md flex-1 text-center">Read B</div><div class="bg-amber-400 text-white rounded-lg px-3 py-2.5 text-xs font-bold shadow-md flex-1 text-center">Grep C</div></div></div><div><div class="text-[10px] font-bold text-red-400 mb-2">串行排队 (Write/Bash)</div><div class="flex gap-2 items-center"><div class="flex items-center gap-2"><div class="bg-red-400 text-white rounded-lg px-3 py-2.5 text-xs font-bold shadow-md text-center">Write X</div><span class="text-sm text-red-400 font-bold">→</span></div><div class="flex items-center gap-2"><div class="bg-red-500 text-white rounded-lg px-3 py-2.5 text-xs font-bold shadow-md text-center">Bash Y</div></div></div></div><div class="bg-emerald-500 text-white rounded-lg px-4 py-2.5 text-xs font-bold text-center shadow-md">收集全部 tool_result</div></div><div class="space-y-3"><div class="flex items-center justify-between"><div class="flex items-center gap-1"><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" title="重置"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw h-4 w-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button><button disabled="" class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="上一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back h-4 w-4" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg></button><button class="p-2 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" title="自动播放"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></button><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="下一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward h-4 w-4" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg></button></div><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-accent)] scale-125"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div></div><span class="text-xs font-mono text-[var(--color-text-muted)]">1<!-- --> / <!-- -->5</span></div><div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3"><div class="text-sm font-semibold text-[var(--color-text)]">工具调用解析</div><div class="text-sm text-[var(--color-text-secondary)] mt-0.5">AI 响应中提取 tool_use content block 列表</div></div></div></div></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
+$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:0","S:0")</script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[9686,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"177\",\"static/chunks/app/layout-b5983c2a6e5f3636.js\"],\"default\"]\n3:I[9766,[],\"\"]\n4:I[8924,[],\"\"]\n5:I[7989,[],\"ClientSegmentRoot\"]\n6:I[1084,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"167\",\"static/chunks/app/(learn)/layout-428c68e7c724cf16.js\"],\"default\"]\n9:I[4431,[],\"OutletBoundary\"]\nb:I[5278,[],\"AsyncMetadataOutlet\"]\nd:I[4431,[],\"ViewportBoundary\"]\nf:I[4431,[],\"MetadataBoundary\"]\n10:\"$Sreact.suspense\"\n12:I[7150,[],\"\"]\n:HL[\"/_next/static/css/ad875cc29e795ab7.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"KKE32b9WFCkqyQ0X62vxy\",\"p\":\"\",\"c\":[\"\",\"c07\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"(learn)\",{\"children\":[[\"chapter\",\"c07\",\"d\"],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/ad875cc29e795ab7.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"icon\",\"href\":\"/favicon.svg\",\"type\":\"image/svg+xml\"}],[\"$\",\"script\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"\\n              (function() {\\n                try {\\n                  var mode = localStorage.getItem('theme');\\n                  if (mode === 'dark' || (!mode \u0026\u0026 window.matchMedia('(prefers-color-scheme: dark)').matches)) {\\n                    document.documentElement.classList.add('dark');\\n                  } else {\\n                    document.documentElement.classList.remove('dark');\\n                  }\\n                } catch(e) {}\\n              })();\\n            \"}}]]}],[\"$\",\"body\",null,{\"className\":\"min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased\",\"children\":[[\"$\",\"$L2\",null,{}],[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8\",\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]]}]]}],{\"children\":[\"(learn)\",[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L5\",null,{\"Component\":\"$6\",\"slots\":{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:style\",\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:1:props:style\",\"children\":404}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:style\",\"children\":[\"$\",\"h2\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:children:props:style\",\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]},\"params\":{},\"promise\":\"$@7\"}]]}],{\"children\":[[\"chapter\",\"c07\",\"d\"],[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[\"$L8\",null,[\"$\",\"$L9\",null,{\"children\":[\"$La\",[\"$\",\"$Lb\",null,{\"promise\":\"$@c\"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$Ld\",null,{\"children\":\"$Le\"}],null],[\"$\",\"$Lf\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$10\",null,{\"fallback\":null,\"children\":\"$L11\"}]}]}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$12\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"7:\"$0:f:0:1:2:children:1:props:children:1:props:params\"\n"])</script><script>self.__next_f.push([1,"13:I[5016,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"620\",\"static/chunks/620-2711a7e455946243.js\",\"6\",\"static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js\"],\"default\"]\n8:[\"$\",\"$L13\",null,{\"chapterId\":\"c07\"}]\n"])</script><script>self.__next_f.push([1,"e:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\na:null\n"])</script><script>self.__next_f.push([1,"c:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"深入 Claude Code 源码\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。\"}],[\"$\",\"meta\",\"2\",{\"name\":\"keywords\",\"content\":\"Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"11:\"$c:metadata\"\n"])</script></body></html>

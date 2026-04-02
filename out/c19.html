@@ -1,0 +1,504 @@
+<!DOCTYPE html><!--KKE32b9WFCkqyQ0X62vxy--><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/ad875cc29e795ab7.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-4741459095cd400e.js"/><script src="/_next/static/chunks/4bd1b696-c023c6e3521b1417.js" async=""></script><script src="/_next/static/chunks/255-aaafc19c72668c72.js" async=""></script><script src="/_next/static/chunks/main-app-14368e47824f3575.js" async=""></script><script src="/_next/static/chunks/619-ba102abea3e3d0e4.js" async=""></script><script src="/_next/static/chunks/app/layout-b5983c2a6e5f3636.js" async=""></script><script src="/_next/static/chunks/app/(learn)/layout-428c68e7c724cf16.js" async=""></script><script src="/_next/static/chunks/620-2711a7e455946243.js" async=""></script><script src="/_next/static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js" async=""></script><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><title>深入 Claude Code 源码</title><meta name="description" content="从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。"/><meta name="keywords" content="Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript"/><script>
+              (function() {
+                try {
+                  var mode = localStorage.getItem('theme');
+                  if (mode === 'dark' || (!mode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch(e) {}
+              })();
+            </script><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased"><div hidden=""><!--$--><!--/$--></div><header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/80 backdrop-blur-md"><div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"><a class="flex items-center gap-2 font-bold text-lg text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-terminal h-5 w-5 text-[var(--color-accent)]" aria-hidden="true"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg><span>Claude Code 源码解析</span></a><nav class="hidden md:flex items-center gap-1"><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/">首页</a><a class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01">开始学习</a><div class="mx-2 h-5 w-px bg-[var(--color-border)]"></div><button class="p-2 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" aria-label="切换主题"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></nav><button class="md:hidden p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]" aria-label="菜单"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-5 w-5" aria-hidden="true"><path d="M4 12h16"></path><path d="M4 18h16"></path><path d="M4 6h16"></path></svg></button></div></header><main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex flex-row min-h-[calc(100vh-2rem)] gap-6 py-6"><aside class="hidden md:block w-56 shrink-0"><div class="sticky top-6"><aside class="hidden md:block w-56 shrink-0"><nav class="sticky top-[calc(3.5rem+1px)] max-h-[calc(100vh-3.5rem-1px)] overflow-y-auto py-6 pr-4 space-y-6"><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">启动与基础</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c01"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">01</span><span class="truncate">启动引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c02"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">02</span><span class="truncate">配置系统</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">核心引擎</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c03"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">03</span><span class="truncate">查询引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c04"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">04</span><span class="truncate">查询循环</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c05"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">05</span><span class="truncate">API 客户端</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-amber-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">工具系统</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c06"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">06</span><span class="truncate">工具架构</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c07"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">07</span><span class="truncate">工具执行引擎</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c08"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">08</span><span class="truncate">内置工具全景</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c09"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">09</span><span class="truncate">计划与工作流</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">安全与权限</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c10"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">10</span><span class="truncate">权限系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c11"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">11</span><span class="truncate">Hook 生命周期</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-red-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">扩展与集成</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c12"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">12</span><span class="truncate">MCP 集成</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c13"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">13</span><span class="truncate">内存与上下文</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c14"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">14</span><span class="truncate">子代理系统</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c15"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">15</span><span class="truncate">Teams 多代理协作</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c16"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">16</span><span class="truncate">任务与调度</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c17"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">17</span><span class="truncate">Skills 与 Plugins</span></a></li></ul></div><div><div class="flex items-center gap-2 px-3 mb-1.5"><div class="w-2 h-2 rounded-full bg-slate-500"></div><span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">界面与状态</span></div><ul class="space-y-0.5"><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c18"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">18</span><span class="truncate">状态管理</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors font-medium text-[var(--color-text)] bg-slate-500/10 dark:bg-slate-500/15" href="/c19"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">19</span><span class="truncate">终端 UI 框架</span></a></li><li><a class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" href="/c20"><span class="text-xs text-[var(--color-text-muted)] font-mono w-6">20</span><span class="truncate">Bridge 与远程集成</span></a></li></ul></div></nav></aside></div></aside><div class="flex-1 min-w-0"><div class="pb-20"><header class="mb-6"><a class="group mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-accent)]" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>返回目录</a><div class="flex items-center gap-3 mb-3"><span class="layer-ui-state layer-badge">界面与状态</span><span class="text-sm font-mono font-semibold text-[var(--color-text-muted)]">第 <!-- -->19<!-- --> 章</span></div><h1 class="text-3xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-4xl">终端 UI 框架</h1><p class="mt-2 text-lg text-[var(--color-text-secondary)]">自定义 Ink 的 React 终端</p><div class="relative mt-6 rounded-xl border border-[var(--color-border)] overflow-hidden"><div class="absolute inset-0 opacity-[0.08]" style="background:linear-gradient(135deg, var(--layer-ui-state), var(--color-accent))"></div><div class="relative px-5 py-4"><div class="flex items-start gap-3"><div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style="background-color:var(--layer-ui-state-light)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true" style="color:var(--layer-ui-state)"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-1">核心洞察</div><p class="text-[15px] font-medium leading-relaxed text-[var(--color-text)]">通过自定义 React Reconciler，将 React 组件树渲染为 ANSI 终端输出</p></div></div></div></div></header><div class="sticky-tabs-bar"><div class="sticky-tabs-inner"><button class="sticky-tab-item sticky-tab-active"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg>学习</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>架构</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>源码</button><button class="sticky-tab-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>互动</button></div></div><section id="section-learn" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-blue-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open h-4 w-4 text-blue-500" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></div><div><h2 class="section-header-title">学习</h2><p class="section-header-subtitle">概念讲解与核心设计分析</p></div></div><div class="prose-custom">
+    <h2>19.1 自定义 Ink 分支</h2>
+    <p>Claude Code <strong>没有使用</strong> npm 上的 Ink 包，而是在 <strong>ink/</strong> 目录维护了一个包含 <strong>80+ 文件</strong>的自定义 Ink 分支。分叉的核心原因包括：</p>
+    <ul>
+      <li><strong>性能优化</strong> — 原版 Ink 在高频输出（如 streaming 回复）场景下存在闪烁和性能瓶颈。Claude Code 的渲染器实现了帧合并、差量更新和闪烁防护</li>
+      <li><strong>鼠标与点击支持</strong> — 原版 Ink 不支持鼠标事件。自定义版本增加了鼠标点击、滚轮、焦点管理等完整的交互支持</li>
+      <li><strong>虚拟滚动</strong> — 对长输出实现了虚拟滚动机制（useVirtualScroll），只渲染可见区域，大幅降低内存占用</li>
+      <li><strong>Vim 模式集成</strong> — 内置完整的 Vim 键绑定系统，支持 motions、operators 和 text objects</li>
+    </ul>
+
+    <h2>19.2 React Reconciler 与终端 DOM</h2>
+    <p>Claude Code 的终端 UI 基于 <strong>React Reconciler</strong> 构建，将 React 的组件模型映射到终端输出：</p>
+    <ul>
+      <li><strong>reconciler.ts</strong> — 自定义 React Reconciler，实现了 createInstance、appendChild、commitUpdate 等核心方法。将 React 元素树转换为终端 DOM 节点树</li>
+      <li><strong>dom.ts</strong> — 终端 DOM 层，定义了 DOMElement 和 DOMText 节点类型。每个节点携带样式（颜色、边距、flex 属性等）和内容信息</li>
+      <li><strong>renderer.ts</strong> — 渲染器，遍历 DOM 树生成 ANSI 转义序列输出。包含帧率控制和差量渲染优化</li>
+    </ul>
+
+    <h2>19.3 Flexbox 布局引擎</h2>
+    <p><strong>layout/</strong> 目录通过 <strong>yoga-layout</strong> 绑定实现了终端中的 Flexbox 布局：</p>
+    <ul>
+      <li>支持 flexDirection、justifyContent、alignItems 等标准 Flexbox 属性</li>
+      <li>支持 margin、padding、border 盒模型</li>
+      <li>支持百分比和固定尺寸</li>
+      <li>Yoga 引擎将布局计算映射到终端行列坐标系统</li>
+    </ul>
+
+    <h2>19.4 核心组件与 Hooks</h2>
+    <p>自定义 Ink 提供了一组核心组件和 Hooks：</p>
+    <ul>
+      <li><strong>组件</strong>: Box（布局容器）、Text（文本渲染）、ScrollBox（可滚动容器）、Button（可点击按钮）、Link（超链接）、App（根应用容器）</li>
+      <li><strong>Hooks</strong>: useInput（键盘输入处理）、useAnimationFrame（动画帧回调）、useSelection（选区管理）</li>
+      <li><strong>事件系统</strong>: keyboard、mouse、click、focus、terminal resize 等事件</li>
+    </ul>
+
+    <h2>19.5 屏幕与快捷键</h2>
+    <p><strong>screens/</strong> 定义了应用的主要界面：</p>
+    <ul>
+      <li><strong>REPL.tsx</strong> — 主交互界面，包含输入区、输出区、状态栏和工具栏</li>
+      <li><strong>Doctor.tsx</strong> — 诊断界面，检查环境配置和依赖状态</li>
+      <li><strong>ResumeConversation.tsx</strong> — 会话恢复界面</li>
+    </ul>
+    <p><strong>keybindings/</strong>（14 个文件）提供了完整的快捷键系统：parser 解析键序列、resolver 解析绑定冲突、schema 定义绑定格式、defaultBindings 提供默认配置。</p>
+
+    <h2>19.6 Vim 模式与语音输入</h2>
+    <p><strong>vim/</strong>（5 个文件）实现了终端中的 Vim 编辑模式：</p>
+    <ul>
+      <li><strong>motions</strong> — 光标移动：h/j/k/l、w/b/e、0/$</li>
+      <li><strong>operators</strong> — 操作符：d(delete)、c(change)、y(yank)</li>
+      <li><strong>textObjects</strong> — 文本对象：iw(inner word)、a"(around quotes)</li>
+      <li><strong>transitions</strong> — 模式切换：Normal/Insert/Visual</li>
+    </ul>
+    <p><strong>语音输入</strong>通过 useVoice、useVoiceIntegration 和 voiceStreamSTT 实现实时语音转文字输入。</p>
+
+    <h2>19.7 输出优化</h2>
+    <p><strong>frame.ts</strong> 实现帧合并和闪烁防护，<strong>optimizer.ts</strong> 优化 ANSI 输出序列长度。两者配合确保即使在高频 streaming 场景下也能流畅显示。</p>
+  </div></section><section id="section-architecture" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-emerald-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch h-4 w-4 text-emerald-500" aria-hidden="true"><line x1="6" x2="6" y1="3" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></div><div><h2 class="section-header-title">架构</h2><p class="section-header-subtitle">模块关系与设计决策</p></div></div><div class="prose-custom">
+    <div class="arch-diagram">
+      <h3>终端 UI 框架架构图</h3>
+      <div class="arch-flow">
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #e94560;">React 组件层</h4>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 2px solid #e94560; text-align: center;">
+              <div style="font-weight: bold;">REPL.tsx</div>
+              <div style="font-size: 11px; color: #aaa;">主界面</div>
+            </div>
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #e94560; text-align: center;">
+              <div style="font-weight: bold;">Doctor.tsx</div>
+              <div style="font-size: 11px; color: #aaa;">诊断界面</div>
+            </div>
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #e94560; text-align: center;">
+              <div style="font-weight: bold;">Resume.tsx</div>
+              <div style="font-size: 11px; color: #aaa;">会话恢复</div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+            <div style="background: #0d1b2a; padding: 6px 12px; border-radius: 16px; border: 1px solid #e94560; font-size: 12px;">Box</div>
+            <div style="background: #0d1b2a; padding: 6px 12px; border-radius: 16px; border: 1px solid #e94560; font-size: 12px;">Text</div>
+            <div style="background: #0d1b2a; padding: 6px 12px; border-radius: 16px; border: 1px solid #e94560; font-size: 12px;">ScrollBox</div>
+            <div style="background: #0d1b2a; padding: 6px 12px; border-radius: 16px; border: 1px solid #e94560; font-size: 12px;">Button</div>
+            <div style="background: #0d1b2a; padding: 6px 12px; border-radius: 16px; border: 1px solid #e94560; font-size: 12px;">Link</div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #e94560;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #0f3460;">React Reconciler + DOM</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #0f3460; text-align: center;">
+              <div style="font-weight: bold; font-size: 13px;">reconciler.ts</div>
+              <div style="font-size: 11px; color: #aaa;">React &#x2192; Terminal DOM</div>
+            </div>
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #0f3460; text-align: center;">
+              <div style="font-weight: bold; font-size: 13px;">dom.ts</div>
+              <div style="font-size: 11px; color: #aaa;">DOMElement 树</div>
+            </div>
+            <div style="background: #16213e; padding: 12px; border-radius: 8px; border: 1px solid #0f3460; text-align: center;">
+              <div style="font-weight: bold; font-size: 13px;">layout/ (yoga)</div>
+              <div style="font-size: 11px; color: #aaa;">Flexbox 布局</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #0f3460;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+          <h4 style="color: #533483;">渲染 &amp; 输入</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: #2d1b4e; padding: 14px; border-radius: 8px; border: 1px solid #533483;">
+              <div style="font-weight: bold; font-size: 13px;">renderer.ts</div>
+              <div style="font-size: 11px; color: #aaa;">DOM &#x2192; ANSI 输出</div>
+              <div style="font-size: 11px; color: #aaa;">frame.ts 帧合并</div>
+              <div style="font-size: 11px; color: #aaa;">optimizer.ts 序列优化</div>
+            </div>
+            <div style="background: #2d1b4e; padding: 14px; border-radius: 8px; border: 1px solid #533483;">
+              <div style="font-weight: bold; font-size: 13px;">输入系统</div>
+              <div style="font-size: 11px; color: #aaa;">keybindings/ (14 files)</div>
+              <div style="font-size: 11px; color: #aaa;">vim/ (5 files)</div>
+              <div style="font-size: 11px; color: #aaa;">useVoice 语音输入</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 24px; color: #533483;">&#x2193;</div>
+        <div class="arch-layer" style="background: #1a1a2e; padding: 20px; border-radius: 12px;">
+          <h4 style="color: #48c9b0;">终端输出</h4>
+          <div style="display: flex; justify-content: center; gap: 16px;">
+            <div style="background: #16213e; padding: 12px 20px; border-radius: 8px; border: 1px solid #48c9b0;">
+              <div style="font-weight: bold;">process.stdout</div>
+              <div style="font-size: 11px; color: #aaa;">ANSI 转义序列</div>
+            </div>
+            <div style="background: #16213e; padding: 12px 20px; border-radius: 8px; border: 1px solid #48c9b0;">
+              <div style="font-weight: bold;">process.stdin</div>
+              <div style="font-size: 11px; color: #aaa;">按键/鼠标事件</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></section><section id="section-source" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-amber-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-amber-500" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg></div><div><h2 class="section-header-title">源码</h2><p class="section-header-subtitle">共 <!-- -->3<!-- --> 个关键代码示例</p></div></div><div class="space-y-8"><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">01</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">React Reconciler 与终端 DOM</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// dom.ts: 终端 DOM 节点定义</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">DOMElement</span> {
+  <span class="hljs-attr">nodeName</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">parentNode</span>: <span class="hljs-title class_">DOMElement</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">childNodes</span>: <span class="hljs-title class_">Array</span>&lt;<span class="hljs-title class_">DOMElement</span> | <span class="hljs-title class_">DOMText</span>&gt;;
+  <span class="hljs-attr">style</span>: <span class="hljs-title class_">DOMStyle</span>;
+  <span class="hljs-attr">yogaNode</span>: <span class="hljs-title class_">YogaNode</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-comment">// 事件处理</span>
+  <span class="hljs-attr">onClick</span>?: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-attr">event</span>: <span class="hljs-title class_">ClickEvent</span></span>) =&gt;</span> <span class="hljs-built_in">void</span>;
+  <span class="hljs-attr">onFocus</span>?: <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>;
+  <span class="hljs-attr">onBlur</span>?: <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">DOMText</span> {
+  <span class="hljs-attr">nodeName</span>: <span class="hljs-string">&quot;#text&quot;</span>;
+  <span class="hljs-attr">nodeValue</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">parentNode</span>: <span class="hljs-title class_">DOMElement</span> | <span class="hljs-literal">null</span>;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">DOMStyle</span> {
+  <span class="hljs-attr">color</span>?: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">backgroundColor</span>?: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">flexDirection</span>?: <span class="hljs-string">&quot;row&quot;</span> | <span class="hljs-string">&quot;column&quot;</span>;
+  <span class="hljs-attr">justifyContent</span>?: <span class="hljs-string">&quot;flex-start&quot;</span> | <span class="hljs-string">&quot;center&quot;</span> | <span class="hljs-string">&quot;flex-end&quot;</span>;
+  <span class="hljs-attr">alignItems</span>?: <span class="hljs-string">&quot;flex-start&quot;</span> | <span class="hljs-string">&quot;center&quot;</span> | <span class="hljs-string">&quot;flex-end&quot;</span>;
+  <span class="hljs-attr">width</span>?: <span class="hljs-built_in">number</span> | <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">height</span>?: <span class="hljs-built_in">number</span> | <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">marginTop</span>?: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">marginBottom</span>?: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">paddingLeft</span>?: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">paddingRight</span>?: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">borderStyle</span>?: <span class="hljs-string">&quot;single&quot;</span> | <span class="hljs-string">&quot;double&quot;</span> | <span class="hljs-string">&quot;round&quot;</span>;
+}
+
+<span class="hljs-comment">// reconciler.ts: React Reconciler 实现</span>
+<span class="hljs-keyword">const</span> reconciler = <span class="hljs-title class_">ReactReconciler</span>({
+  <span class="hljs-attr">supportsMutation</span>: <span class="hljs-literal">true</span>,
+
+  <span class="hljs-title function_">createInstance</span>(
+    <span class="hljs-attr">type</span>: <span class="hljs-built_in">string</span>,
+    <span class="hljs-attr">props</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;
+  ): <span class="hljs-title class_">DOMElement</span> {
+    <span class="hljs-keyword">const</span> <span class="hljs-attr">node</span>: <span class="hljs-title class_">DOMElement</span> = {
+      <span class="hljs-attr">nodeName</span>: <span class="hljs-keyword">type</span>,
+      <span class="hljs-attr">parentNode</span>: <span class="hljs-literal">null</span>,
+      <span class="hljs-attr">childNodes</span>: [],
+      <span class="hljs-attr">style</span>: <span class="hljs-title function_">extractStyle</span>(props),
+      <span class="hljs-attr">yogaNode</span>: <span class="hljs-title class_">Yoga</span>.<span class="hljs-property">Node</span>.<span class="hljs-title function_">create</span>()
+    };
+    <span class="hljs-title function_">applyYogaStyle</span>(node.<span class="hljs-property">yogaNode</span>, node.<span class="hljs-property">style</span>);
+    <span class="hljs-keyword">return</span> node;
+  },
+
+  <span class="hljs-title function_">createTextInstance</span>(<span class="hljs-attr">text</span>: <span class="hljs-built_in">string</span>): <span class="hljs-title class_">DOMText</span> {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">nodeName</span>: <span class="hljs-string">&quot;#text&quot;</span>,
+      <span class="hljs-attr">nodeValue</span>: text,
+      <span class="hljs-attr">parentNode</span>: <span class="hljs-literal">null</span>
+    };
+  },
+
+  <span class="hljs-title function_">appendChild</span>(<span class="hljs-params"><span class="hljs-attr">parent</span>: <span class="hljs-title class_">DOMElement</span>, <span class="hljs-attr">child</span>: <span class="hljs-title class_">DOMElement</span> | <span class="hljs-title class_">DOMText</span></span>) {
+    child.<span class="hljs-property">parentNode</span> = parent;
+    parent.<span class="hljs-property">childNodes</span>.<span class="hljs-title function_">push</span>(child);
+    <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;yogaNode&quot;</span> <span class="hljs-keyword">in</span> child &amp;&amp; child.<span class="hljs-property">yogaNode</span>) {
+      parent.<span class="hljs-property">yogaNode</span>?.<span class="hljs-title function_">insertChild</span>(
+        child.<span class="hljs-property">yogaNode</span>,
+        parent.<span class="hljs-property">yogaNode</span>.<span class="hljs-title function_">getChildCount</span>()
+      );
+    }
+  },
+
+  <span class="hljs-title function_">commitUpdate</span>(<span class="hljs-params">
+    <span class="hljs-attr">node</span>: <span class="hljs-title class_">DOMElement</span>,
+    <span class="hljs-attr">_oldProps</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;,
+    <span class="hljs-attr">newProps</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-built_in">unknown</span>&gt;
+  </span>) {
+    node.<span class="hljs-property">style</span> = <span class="hljs-title function_">extractStyle</span>(newProps);
+    <span class="hljs-keyword">if</span> (node.<span class="hljs-property">yogaNode</span>) {
+      <span class="hljs-title function_">applyYogaStyle</span>(node.<span class="hljs-property">yogaNode</span>, node.<span class="hljs-property">style</span>);
+    }
+  }
+});</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">02</span><div class="h-px flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent"></div></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">渲染器与帧优化</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span><span>87</span><span>88</span><span>89</span><span>90</span><span>91</span><span>92</span><span>93</span><span>94</span><span>95</span><span>96</span><span>97</span><span>98</span><span>99</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// renderer.ts: DOM 树 -&gt; ANSI 输出</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TerminalRenderer</span> {
+  <span class="hljs-keyword">private</span> lastOutput = <span class="hljs-string">&quot;&quot;</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">frameBuffer</span>: <span class="hljs-built_in">string</span>[] = [];
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">rafId</span>: <span class="hljs-built_in">number</span> | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;
+
+  <span class="hljs-title function_">render</span>(<span class="hljs-attr">rootNode</span>: <span class="hljs-title class_">DOMElement</span>): <span class="hljs-built_in">void</span> {
+    <span class="hljs-comment">// 1. Yoga 计算布局</span>
+    rootNode.<span class="hljs-property">yogaNode</span>?.<span class="hljs-title function_">calculateLayout</span>(
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">termWidth</span>,
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">termHeight</span>
+    );
+
+    <span class="hljs-comment">// 2. 遍历 DOM 树生成 ANSI</span>
+    <span class="hljs-keyword">const</span> output = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">renderNode</span>(rootNode, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);
+
+    <span class="hljs-comment">// 3. 帧合并：防止高频刷新闪烁</span>
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">frameBuffer</span>.<span class="hljs-title function_">push</span>(output);
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">rafId</span> === <span class="hljs-literal">null</span>) {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">rafId</span> = <span class="hljs-title function_">requestAnimationFrame</span>(<span class="hljs-function">() =&gt;</span> {
+        <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">flush</span>();
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">rafId</span> = <span class="hljs-literal">null</span>;
+      });
+    }
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">renderNode</span>(
+    <span class="hljs-attr">node</span>: <span class="hljs-title class_">DOMElement</span>,
+    <span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>,
+    <span class="hljs-attr">y</span>: <span class="hljs-built_in">number</span>
+  ): <span class="hljs-built_in">string</span> {
+    <span class="hljs-keyword">const</span> layout = node.<span class="hljs-property">yogaNode</span>?.<span class="hljs-title function_">getComputedLayout</span>();
+    <span class="hljs-keyword">if</span> (!layout) <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&quot;</span>;
+
+    <span class="hljs-keyword">let</span> result = <span class="hljs-string">&quot;&quot;</span>;
+    <span class="hljs-keyword">const</span> absX = x + layout.<span class="hljs-property">left</span>;
+    <span class="hljs-keyword">const</span> absY = y + layout.<span class="hljs-property">top</span>;
+
+    <span class="hljs-comment">// 绘制背景和边框</span>
+    <span class="hljs-keyword">if</span> (node.<span class="hljs-property">style</span>.<span class="hljs-property">backgroundColor</span>) {
+      result += <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">drawBackground</span>(
+        absX, absY, layout.<span class="hljs-property">width</span>, layout.<span class="hljs-property">height</span>,
+        node.<span class="hljs-property">style</span>.<span class="hljs-property">backgroundColor</span>
+      );
+    }
+
+    <span class="hljs-comment">// 递归渲染子节点</span>
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> child <span class="hljs-keyword">of</span> node.<span class="hljs-property">childNodes</span>) {
+      <span class="hljs-keyword">if</span> (child.<span class="hljs-property">nodeName</span> === <span class="hljs-string">&quot;#text&quot;</span>) {
+        result += <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">drawText</span>(
+          absX, absY, child.<span class="hljs-property">nodeValue</span>,
+          node.<span class="hljs-property">style</span>.<span class="hljs-property">color</span>
+        );
+      } <span class="hljs-keyword">else</span> {
+        result += <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">renderNode</span>(
+          child <span class="hljs-keyword">as</span> <span class="hljs-title class_">DOMElement</span>, absX, absY
+        );
+      }
+    }
+
+    <span class="hljs-keyword">return</span> result;
+  }
+
+  <span class="hljs-comment">// frame.ts: 帧合并与闪烁防护</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">flush</span>(): <span class="hljs-built_in">void</span> {
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">frameBuffer</span>.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span>;
+
+    <span class="hljs-comment">// 取最后一帧（丢弃中间帧）</span>
+    <span class="hljs-keyword">const</span> latest =
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">frameBuffer</span>[<span class="hljs-variable language_">this</span>.<span class="hljs-property">frameBuffer</span>.<span class="hljs-property">length</span> - <span class="hljs-number">1</span>];
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">frameBuffer</span> = [];
+
+    <span class="hljs-comment">// 差量输出优化</span>
+    <span class="hljs-keyword">if</span> (latest !== <span class="hljs-variable language_">this</span>.<span class="hljs-property">lastOutput</span>) {
+      <span class="hljs-keyword">const</span> optimized = <span class="hljs-title function_">optimizeAnsi</span>(
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">lastOutput</span>, latest
+      );
+      process.<span class="hljs-property">stdout</span>.<span class="hljs-title function_">write</span>(optimized);
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">lastOutput</span> = latest;
+    }
+  }
+}
+
+<span class="hljs-comment">// optimizer.ts: ANSI 序列压缩</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">optimizeAnsi</span>(<span class="hljs-params">
+  <span class="hljs-attr">prev</span>: <span class="hljs-built_in">string</span>, <span class="hljs-attr">next</span>: <span class="hljs-built_in">string</span>
+</span>): <span class="hljs-built_in">string</span> {
+  <span class="hljs-comment">// 找到第一个差异位置</span>
+  <span class="hljs-keyword">let</span> diffStart = <span class="hljs-number">0</span>;
+  <span class="hljs-keyword">while</span> (
+    diffStart &lt; prev.<span class="hljs-property">length</span>
+    &amp;&amp; diffStart &lt; next.<span class="hljs-property">length</span>
+    &amp;&amp; prev[diffStart] === next[diffStart]
+  ) {
+    diffStart++;
+  }
+  <span class="hljs-comment">// 只输出变化部分 + 光标定位</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-title function_">cursorTo</span>(diffStart) + next.<span class="hljs-title function_">slice</span>(diffStart);
+}</code></pre></div></div></div><div class="relative"><div class="flex items-center gap-3 mb-3"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-accent)] text-[10px] font-bold text-white shadow-sm">03</span></div><div class="code-block"><div class="code-block-header"><div class="code-block-dots"><span class="code-dot code-dot-red"></span><span class="code-dot code-dot-yellow"></span><span class="code-dot code-dot-green"></span></div><span class="code-block-title">快捷键系统与 Vim 模式</span><div class="flex-1"></div><span class="code-lang-pill">TypeScript</span><button class="code-copy-btn" aria-label="复制代码" title="复制代码"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="code-copy-label">复制</span></button></div><div class="code-block-body"><div class="code-line-numbers" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>32</span><span>33</span><span>34</span><span>35</span><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span><span>47</span><span>48</span><span>49</span><span>50</span><span>51</span><span>52</span><span>53</span><span>54</span><span>55</span><span>56</span><span>57</span><span>58</span><span>59</span><span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65</span><span>66</span><span>67</span><span>68</span><span>69</span><span>70</span><span>71</span><span>72</span><span>73</span><span>74</span><span>75</span><span>76</span><span>77</span><span>78</span><span>79</span><span>80</span><span>81</span><span>82</span><span>83</span><span>84</span><span>85</span><span>86</span><span>87</span><span>88</span><span>89</span><span>90</span><span>91</span><span>92</span><span>93</span><span>94</span><span>95</span><span>96</span><span>97</span><span>98</span><span>99</span><span>100</span><span>101</span><span>102</span><span>103</span><span>104</span><span>105</span><span>106</span><span>107</span><span>108</span><span>109</span></div><pre class="code-block-pre"><code class="hljs language-typescript"><span class="hljs-comment">// keybindings/parser.ts: 键序列解析</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">KeyBinding</span> {
+  <span class="hljs-attr">key</span>: <span class="hljs-built_in">string</span>;           <span class="hljs-comment">// &quot;ctrl+s&quot;, &quot;escape j&quot;</span>
+  <span class="hljs-attr">command</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">when</span>?: <span class="hljs-built_in">string</span>;         <span class="hljs-comment">// 条件表达式</span>
+  <span class="hljs-attr">priority</span>?: <span class="hljs-built_in">number</span>;
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">parseKeySequence</span>(<span class="hljs-params">
+  <span class="hljs-attr">raw</span>: <span class="hljs-built_in">string</span>
+</span>): <span class="hljs-title class_">ParsedKey</span>[] {
+  <span class="hljs-keyword">return</span> raw.<span class="hljs-title function_">split</span>(<span class="hljs-string">&quot; &quot;</span>).<span class="hljs-title function_">map</span>(<span class="hljs-function"><span class="hljs-params">part</span> =&gt;</span> {
+    <span class="hljs-keyword">const</span> <span class="hljs-attr">modifiers</span>: <span class="hljs-built_in">string</span>[] = [];
+    <span class="hljs-keyword">let</span> key = part;
+
+    <span class="hljs-keyword">if</span> (key.<span class="hljs-title function_">includes</span>(<span class="hljs-string">&quot;+&quot;</span>)) {
+      <span class="hljs-keyword">const</span> segments = key.<span class="hljs-title function_">split</span>(<span class="hljs-string">&quot;+&quot;</span>);
+      key = segments.<span class="hljs-title function_">pop</span>()!;
+      modifiers.<span class="hljs-title function_">push</span>(...segments);
+    }
+
+    <span class="hljs-keyword">return</span> { key, modifiers };
+  });
+}
+
+<span class="hljs-comment">// keybindings/resolver.ts: 绑定解析与冲突处理</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">KeybindingResolver</span> {
+  <span class="hljs-keyword">private</span> <span class="hljs-attr">bindings</span>: <span class="hljs-title class_">KeyBinding</span>[] = [];
+
+  <span class="hljs-title function_">resolve</span>(
+    <span class="hljs-attr">event</span>: <span class="hljs-title class_">KeyEvent</span>,
+    <span class="hljs-attr">context</span>: <span class="hljs-title class_">KeyContext</span>
+  ): <span class="hljs-title class_">KeyBinding</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">const</span> matches = <span class="hljs-variable language_">this</span>.<span class="hljs-property">bindings</span>.<span class="hljs-title function_">filter</span>(<span class="hljs-function"><span class="hljs-params">b</span> =&gt;</span> {
+      <span class="hljs-keyword">const</span> parsed = <span class="hljs-title function_">parseKeySequence</span>(b.<span class="hljs-property">key</span>);
+      <span class="hljs-keyword">return</span> <span class="hljs-title function_">matchesKey</span>(parsed, event)
+        &amp;&amp; (!b.<span class="hljs-property">when</span> || <span class="hljs-title function_">evaluateWhen</span>(b.<span class="hljs-property">when</span>, context));
+    });
+
+    <span class="hljs-keyword">if</span> (matches.<span class="hljs-property">length</span> === <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+
+    <span class="hljs-comment">// 优先级排序：用户自定义 &gt; 默认</span>
+    matches.<span class="hljs-title function_">sort</span>(
+      <span class="hljs-function">(<span class="hljs-params">a, b</span>) =&gt;</span> (b.<span class="hljs-property">priority</span> || <span class="hljs-number">0</span>) - (a.<span class="hljs-property">priority</span> || <span class="hljs-number">0</span>)
+    );
+    <span class="hljs-keyword">return</span> matches[<span class="hljs-number">0</span>];
+  }
+}
+
+<span class="hljs-comment">// vim/motions.ts: Vim 光标移动</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">vimMotions</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">VimMotion</span>&gt; = {
+  <span class="hljs-attr">h</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;char&quot;</span>, <span class="hljs-attr">direction</span>: -<span class="hljs-number">1</span> },
+  <span class="hljs-attr">l</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;char&quot;</span>, <span class="hljs-attr">direction</span>: <span class="hljs-number">1</span> },
+  <span class="hljs-attr">j</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;line&quot;</span>, <span class="hljs-attr">direction</span>: <span class="hljs-number">1</span> },
+  <span class="hljs-attr">k</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;line&quot;</span>, <span class="hljs-attr">direction</span>: -<span class="hljs-number">1</span> },
+  <span class="hljs-attr">w</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;word&quot;</span>, <span class="hljs-attr">direction</span>: <span class="hljs-number">1</span> },
+  <span class="hljs-attr">b</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;word&quot;</span>, <span class="hljs-attr">direction</span>: -<span class="hljs-number">1</span> },
+  <span class="hljs-string">&quot;0&quot;</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;lineStart&quot;</span> },
+  <span class="hljs-string">&quot;$&quot;</span>: { <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;lineEnd&quot;</span> }
+};
+
+<span class="hljs-comment">// vim/operators.ts: Vim 操作符</span>
+<span class="hljs-keyword">const</span> <span class="hljs-attr">vimOperators</span>: <span class="hljs-title class_">Record</span>&lt;<span class="hljs-built_in">string</span>, <span class="hljs-title class_">VimOperator</span>&gt; = {
+  <span class="hljs-attr">d</span>: {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;delete&quot;</span>,
+    <span class="hljs-title function_">execute</span>(<span class="hljs-params"><span class="hljs-attr">range</span>: <span class="hljs-title class_">TextRange</span>, <span class="hljs-attr">buffer</span>: <span class="hljs-title class_">Buffer</span></span>) {
+      <span class="hljs-keyword">const</span> deleted = buffer.<span class="hljs-title function_">getText</span>(range);
+      buffer.<span class="hljs-title function_">delete</span>(range);
+      <span class="hljs-keyword">return</span> { <span class="hljs-attr">register</span>: deleted };
+    }
+  },
+  <span class="hljs-attr">c</span>: {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;change&quot;</span>,
+    <span class="hljs-title function_">execute</span>(<span class="hljs-params"><span class="hljs-attr">range</span>: <span class="hljs-title class_">TextRange</span>, <span class="hljs-attr">buffer</span>: <span class="hljs-title class_">Buffer</span></span>) {
+      <span class="hljs-keyword">const</span> deleted = buffer.<span class="hljs-title function_">getText</span>(range);
+      buffer.<span class="hljs-title function_">delete</span>(range);
+      <span class="hljs-keyword">return</span> {
+        <span class="hljs-attr">register</span>: deleted,
+        <span class="hljs-attr">enterMode</span>: <span class="hljs-string">&quot;insert&quot;</span>
+      };
+    }
+  },
+  <span class="hljs-attr">y</span>: {
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;yank&quot;</span>,
+    <span class="hljs-title function_">execute</span>(<span class="hljs-params"><span class="hljs-attr">range</span>: <span class="hljs-title class_">TextRange</span>, <span class="hljs-attr">buffer</span>: <span class="hljs-title class_">Buffer</span></span>) {
+      <span class="hljs-keyword">return</span> {
+        <span class="hljs-attr">register</span>: buffer.<span class="hljs-title function_">getText</span>(range)
+      };
+    }
+  }
+};
+
+<span class="hljs-comment">// vim/transitions.ts: 模式转换</span>
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">VimMode</span> = <span class="hljs-string">&quot;normal&quot;</span> | <span class="hljs-string">&quot;insert&quot;</span> | <span class="hljs-string">&quot;visual&quot;</span>;
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">handleVimTransition</span>(<span class="hljs-params">
+  <span class="hljs-attr">currentMode</span>: <span class="hljs-title class_">VimMode</span>,
+  <span class="hljs-attr">key</span>: <span class="hljs-built_in">string</span>
+</span>): <span class="hljs-title class_">VimMode</span> {
+  <span class="hljs-keyword">if</span> (currentMode === <span class="hljs-string">&quot;normal&quot;</span> &amp;&amp; key === <span class="hljs-string">&quot;i&quot;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;insert&quot;</span>;
+  <span class="hljs-keyword">if</span> (currentMode === <span class="hljs-string">&quot;normal&quot;</span> &amp;&amp; key === <span class="hljs-string">&quot;v&quot;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;visual&quot;</span>;
+  <span class="hljs-keyword">if</span> (currentMode === <span class="hljs-string">&quot;insert&quot;</span> &amp;&amp; key === <span class="hljs-string">&quot;escape&quot;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;normal&quot;</span>;
+  <span class="hljs-keyword">if</span> (currentMode === <span class="hljs-string">&quot;visual&quot;</span> &amp;&amp; key === <span class="hljs-string">&quot;escape&quot;</span>)
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;normal&quot;</span>;
+  <span class="hljs-keyword">return</span> currentMode;
+}</code></pre></div></div></div></div></section><section id="section-interactive" class="chapter-section"><div class="section-header"><div class="section-header-icon bg-purple-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-purple-500" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></div><div><h2 class="section-header-title">互动</h2><p class="section-header-subtitle">步进式流程演示</p></div></div><div class="mb-8"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden"><div class="flex items-center gap-2 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4 text-[var(--color-accent)]" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg><span class="text-sm font-semibold text-[var(--color-text-secondary)]">互动演示</span></div><div class="p-5"><!--$?--><template id="B:0"></template><div class="flex flex-col gap-3 animate-pulse"><div class="h-4 w-3/4 rounded bg-[var(--color-bg-tertiary)]"></div><div class="h-40 rounded-lg bg-[var(--color-bg-tertiary)]"></div><div class="h-4 w-1/2 rounded bg-[var(--color-bg-tertiary)]"></div></div><!--/$--></div></div></div><div class="prose-custom">
+    <h3>终端 UI 框架交互式演练</h3>
+    <div class="interactive-demo">
+      <div class="step" data-step="1">
+        <h4>Step 1: React 组件到终端 DOM</h4>
+        <p>开发者使用 JSX 编写终端界面，和 Web React 开发体验几乎一致。Box 和 Text 组件通过自定义 Reconciler 转换为终端 DOM 节点。</p>
+        <div class="code-highlight">
+          <pre>// JSX 组件
+&lt;Box flexDirection="column" padding={1}&gt;
+  &lt;Text color="green" bold&gt;Claude Code&lt;/Text&gt;
+  &lt;Box marginTop={1}&gt;
+    &lt;Text&gt;Ready for input...&lt;/Text&gt;
+  &lt;/Box&gt;
+&lt;/Box&gt;
+
+// 转换为 DOMElement 树
+DOMElement { nodeName: "Box", style: { flexDirection: "column" }
+  DOMElement { nodeName: "Text", style: { color: "green" }
+    DOMText { nodeValue: "Claude Code" }
+  }
+  DOMElement { nodeName: "Box", style: { marginTop: 1 }
+    DOMText { nodeValue: "Ready for input..." }
+  }
+}</pre>
+        </div>
+      </div>
+      <div class="step" data-step="2">
+        <h4>Step 2: Yoga 布局计算</h4>
+        <p>Yoga 引擎将 Flexbox 属性映射到终端行列坐标。每个 DOMElement 的 yogaNode 接收布局参数，计算出精确的 x/y/width/height。</p>
+        <div class="code-highlight">
+          <pre>Yoga 布局计算 (终端 80x24):
+  Box(root):  x=0, y=0, w=80, h=24
+    Text:     x=1, y=1, w=78, h=1  (padding=1)
+    Box:      x=1, y=3, w=78, h=1  (marginTop=1)</pre>
+        </div>
+      </div>
+      <div class="step" data-step="3">
+        <h4>Step 3: ANSI 渲染与帧优化</h4>
+        <p>renderer.ts 将布局结果转换为 ANSI 转义序列。frame.ts 在高频更新时合并多帧为一次输出，optimizer.ts 压缩重复的 ANSI 序列。</p>
+        <div class="code-highlight">
+          <pre>渲染流水线:
+  DOM 树 &#x2192; Yoga 布局 &#x2192; ANSI 生成 &#x2192; 帧合并 &#x2192; 差量输出
+
+帧合并示例 (16ms 内):
+  Frame 1: "Hello W..."  (丢弃)
+  Frame 2: "Hello Wo..." (丢弃)
+  Frame 3: "Hello World"  (输出!)
+
+差量输出: 只重绘变化的字符位置</pre>
+        </div>
+      </div>
+      <div class="step" data-step="4">
+        <h4>Step 4: Vim 模式与快捷键</h4>
+        <p>用户按 Escape 进入 Vim Normal 模式，可使用 hjkl 移动、dd 删除行、yy 复制行。keybindingResolver 处理键序列匹配和优先级。</p>
+        <div class="code-highlight">
+          <pre>Vim 操作流程:
+  按键: "d" &#x2192; 等待操作符...
+  按键: "w" &#x2192; 组合为 "dw" (delete word)
+
+  operator: "d" (delete)
+  motion: "w" (word forward)
+  &#x2192; 计算 word 范围: [col=5, col=12]
+  &#x2192; 删除文本，存入寄存器
+  &#x2192; 更新 DOM，重新渲染</pre>
+        </div>
+      </div>
+    </div>
+  </div></section><section class="mt-12 mb-10"><div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-5 transition-theme"><div class="flex items-center gap-2 mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code-xml h-4 w-4 text-[var(--color-text-muted)]" aria-hidden="true"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg><h3 class="text-sm font-semibold text-[var(--color-text-secondary)]">相关源文件</h3></div><div class="flex flex-wrap gap-2"><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">ink/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">components/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">screens/</span><span class="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-2.5 py-1 text-xs font-mono text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/30">vim/</span></div></div></section><nav class="grid grid-cols-2 gap-4 pt-6 border-t border-[var(--color-border)]"><a class="group flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md" href="/c18"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:-translate-x-0.5" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">上一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">状态管理</div></div></a><a class="group flex items-center justify-end gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 transition-all hover:border-[var(--color-accent)]/30 hover:shadow-md text-right" href="/c20"><div class="min-w-0"><div class="text-xs text-[var(--color-text-muted)]">下一章</div><div class="truncate text-sm font-semibold text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">Bridge 与远程集成</div></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform group-hover:translate-x-0.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></nav></div><!--$--><!--/$--></div></div></main><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/chunks/webpack-4741459095cd400e.js" id="_R_" async=""></script><div hidden id="S:0"><div class="space-y-6"><div class="py-6 px-4 space-y-5"><div class="flex items-center gap-1 justify-center"><div class="flex items-center gap-1"><div class="bg-slate-400 text-white rounded-lg px-2 py-2 text-center shadow-md"><div class="text-[10px] font-bold">React</div><div class="text-[9px] opacity-60">JSX 组件</div></div><span class="text-xs font-bold text-[var(--color-text-muted)]">→</span></div><div class="flex items-center gap-1"><div class="bg-slate-500 text-white rounded-lg px-2 py-2 text-center shadow-md"><div class="text-[10px] font-bold">Ink</div><div class="text-[9px] opacity-60">终端渲染器</div></div><span class="text-xs font-bold text-[var(--color-text-muted)]">→</span></div><div class="flex items-center gap-1"><div class="bg-blue-500 text-white rounded-lg px-2 py-2 text-center shadow-md"><div class="text-[10px] font-bold">Reconciler</div><div class="text-[9px] opacity-60">协调器</div></div><span class="text-xs font-bold text-[var(--color-text-muted)]">→</span></div><div class="flex items-center gap-1"><div class="bg-blue-400 text-white rounded-lg px-2 py-2 text-center shadow-md"><div class="text-[10px] font-bold">DOM 树</div><div class="text-[9px] opacity-60">虚拟节点</div></div><span class="text-xs font-bold text-[var(--color-text-muted)]">→</span></div><div class="flex items-center gap-1"><div class="bg-emerald-500 text-white rounded-lg px-2 py-2 text-center shadow-md"><div class="text-[10px] font-bold">ANSI</div><div class="text-[9px] opacity-60">终端输出</div></div></div></div><div class="grid grid-cols-4 gap-1.5"><div class="border border-[var(--color-border)] rounded-md bg-[var(--color-bg-secondary)] px-2 py-1.5 text-center"><div class="text-[10px] font-mono font-bold text-[var(--color-text)]">InputArea</div><div class="text-[9px] text-[var(--color-text-muted)]">输入区</div></div><div class="border border-[var(--color-border)] rounded-md bg-[var(--color-bg-secondary)] px-2 py-1.5 text-center"><div class="text-[10px] font-mono font-bold text-[var(--color-text)]">MessageList</div><div class="text-[9px] text-[var(--color-text-muted)]">消息列表</div></div><div class="border border-[var(--color-border)] rounded-md bg-[var(--color-bg-secondary)] px-2 py-1.5 text-center"><div class="text-[10px] font-mono font-bold text-[var(--color-text)]">ToolStatus</div><div class="text-[9px] text-[var(--color-text-muted)]">工具状态</div></div><div class="border border-[var(--color-border)] rounded-md bg-[var(--color-bg-secondary)] px-2 py-1.5 text-center"><div class="text-[10px] font-mono font-bold text-[var(--color-text)]">Spinner</div><div class="text-[9px] text-[var(--color-text-muted)]">加载动画</div></div></div><div class="border border-[var(--color-border)] rounded-lg bg-black/80 p-3 font-mono text-[10px] text-emerald-400"><div class="text-slate-500">$ claude</div><div><span class="text-emerald-400">&gt;<!-- --> </span><span class="text-white">Hello, how can I help?</span><span class="text-emerald-400 ml-0.5">_</span></div></div></div><div class="space-y-3"><div class="flex items-center justify-between"><div class="flex items-center gap-1"><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors" title="重置"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-ccw h-4 w-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></button><button disabled="" class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="上一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-back h-4 w-4" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg></button><button class="p-2 rounded-lg transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]" title="自动播放"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play h-4 w-4" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg></button><button class="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-30" title="下一步"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward h-4 w-4" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg></button></div><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-accent)] scale-125"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div><div class="w-2 h-2 rounded-full transition-all duration-300 bg-[var(--color-border)]"></div></div><span class="text-xs font-mono text-[var(--color-text-muted)]">1<!-- --> / <!-- -->5</span></div><div class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3"><div class="text-sm font-semibold text-[var(--color-text)]">React 组件</div><div class="text-sm text-[var(--color-text-secondary)] mt-0.5">使用标准 React JSX 编写 UI 组件, 声明式描述界面</div></div></div></div></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
+$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:0","S:0")</script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[9686,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"177\",\"static/chunks/app/layout-b5983c2a6e5f3636.js\"],\"default\"]\n3:I[9766,[],\"\"]\n4:I[8924,[],\"\"]\n5:I[7989,[],\"ClientSegmentRoot\"]\n6:I[1084,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"167\",\"static/chunks/app/(learn)/layout-428c68e7c724cf16.js\"],\"default\"]\n9:I[4431,[],\"OutletBoundary\"]\nb:I[5278,[],\"AsyncMetadataOutlet\"]\nd:I[4431,[],\"ViewportBoundary\"]\nf:I[4431,[],\"MetadataBoundary\"]\n10:\"$Sreact.suspense\"\n12:I[7150,[],\"\"]\n:HL[\"/_next/static/css/ad875cc29e795ab7.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"KKE32b9WFCkqyQ0X62vxy\",\"p\":\"\",\"c\":[\"\",\"c19\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"(learn)\",{\"children\":[[\"chapter\",\"c19\",\"d\"],{\"children\":[\"__PAGE__\",{}]}]}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/ad875cc29e795ab7.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"suppressHydrationWarning\":true,\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"icon\",\"href\":\"/favicon.svg\",\"type\":\"image/svg+xml\"}],[\"$\",\"script\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"\\n              (function() {\\n                try {\\n                  var mode = localStorage.getItem('theme');\\n                  if (mode === 'dark' || (!mode \u0026\u0026 window.matchMedia('(prefers-color-scheme: dark)').matches)) {\\n                    document.documentElement.classList.add('dark');\\n                  } else {\\n                    document.documentElement.classList.remove('dark');\\n                  }\\n                } catch(e) {}\\n              })();\\n            \"}}]]}],[\"$\",\"body\",null,{\"className\":\"min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-theme antialiased\",\"children\":[[\"$\",\"$L2\",null,{}],[\"$\",\"main\",null,{\"className\":\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8\",\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]]}]]}]]}],{\"children\":[\"(learn)\",[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L5\",null,{\"Component\":\"$6\",\"slots\":{\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:style\",\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:1:props:style\",\"children\":404}],[\"$\",\"div\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:style\",\"children\":[\"$\",\"h2\",null,{\"style\":\"$0:f:0:1:1:props:children:1:props:children:1:props:children:1:props:children:props:notFound:0:1:props:children:props:children:2:props:children:props:style\",\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]},\"params\":{},\"promise\":\"$@7\"}]]}],{\"children\":[[\"chapter\",\"c19\",\"d\"],[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[\"$L8\",null,[\"$\",\"$L9\",null,{\"children\":[\"$La\",[\"$\",\"$Lb\",null,{\"promise\":\"$@c\"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$Ld\",null,{\"children\":\"$Le\"}],null],[\"$\",\"$Lf\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$10\",null,{\"fallback\":null,\"children\":\"$L11\"}]}]}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$12\",[]],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1,"7:\"$0:f:0:1:2:children:1:props:children:1:props:params\"\n"])</script><script>self.__next_f.push([1,"13:I[5016,[\"619\",\"static/chunks/619-ba102abea3e3d0e4.js\",\"620\",\"static/chunks/620-2711a7e455946243.js\",\"6\",\"static/chunks/app/(learn)/%5Bchapter%5D/page-f281c41b56572717.js\"],\"default\"]\n8:[\"$\",\"$L13\",null,{\"chapterId\":\"c19\"}]\n"])</script><script>self.__next_f.push([1,"e:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\na:null\n"])</script><script>self.__next_f.push([1,"c:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"深入 Claude Code 源码\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"从架构到实现，系统学习 Claude Code 内部原理。涵盖基础层、引擎层、工具层、安全层、集成层与 UI 状态管理，深入理解 AI 编程助手的设计哲学与工程实践。\"}],[\"$\",\"meta\",\"2\",{\"name\":\"keywords\",\"content\":\"Claude Code,源码分析,AI 编程,Anthropic,架构设计,TypeScript\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"11:\"$c:metadata\"\n"])</script></body></html>
