@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     "架构设计",
     "TypeScript",
   ],
+  icons: {
+    icon: { url: "/favicon.svg", type: "image/svg+xml" },
+  },
 };
 
 export default function RootLayout({
@@ -27,7 +30,6 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         {/* Prevent FOUC: read dark mode preference before first paint */}
         <script
           dangerouslySetInnerHTML={{
